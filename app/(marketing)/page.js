@@ -1,3 +1,23 @@
+import { CtaSection } from "@/components/marketing/cta-section";
+import { FeaturesSection } from "@/components/marketing/features-section";
+import { HeroSection } from "@/components/marketing/hero-section";
+import { IntroSection } from "@/components/marketing/intro-section";
+import { MarketingFooter } from "@/components/marketing/marketing-footer";
+import { site } from "@/config/site";
+
+export const metadata = {
+  title: `${site.name} · Ship products that feel inevitable`,
+  description: site.description,
+};
+
 export default function HomePage() {
-  return <main className="flex flex-1 bg-black" />;
+  return (
+    <main className="flex flex-1 flex-col bg-black">
+      <HeroSection />
+      <IntroSection />
+      <FeaturesSection />
+      <CtaSection />
+      <MarketingFooter />
+    </main>
+  );
 }
