@@ -1,0 +1,10 @@
+---
+description: Enforce Resend-inspired design from DESIGN.md and Vercel React best practices for all project work
+alwaysApply: true
+---
+
+# Project context
+
+1. **Design system** — Follow `DESIGN.md` at the repo root for colors, typography roles, borders, and component language (void black `#000000`, near-white text `#f0f0f0`, frosty borders, accent tokens, font hierarchy). Prefer existing tokens and patterns from that file when building UI.
+
+2. **React / Next.js** — Apply guidance from `.agents/skills/vercel-react-best-practices/` (rule files and `SKILL.md`) when writing, reviewing, or refactoring React and Next.js code: avoid request waterfalls, optimize bundles and server/client data flow, and keep renders efficient as described there.
