@@ -9,7 +9,9 @@ export function AuthCard({ title, subtitle, children, className }) {
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-8 px-6">
       <header>
-        <h1 className="text-xl font-medium tracking-tight text-[#f0f0f0]">{title}</h1>
+        <h1 data-heading="compact" className="text-[#f0f0f0]">
+          {title}
+        </h1>
         {subtitle ? (
           <p className="mt-2 text-sm text-[#a1a4a5]">{subtitle}</p>
         ) : null}
