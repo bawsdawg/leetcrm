@@ -10,7 +10,7 @@ import { SiteNav } from "./site-nav";
 export function SiteHeader() {
   return (
     <header
-      className="sticky top-0 z-50 w-full border-b border-[rgba(214,235,253,0.19)] bg-black/85 backdrop-blur-md [box-shadow:rgba(176,199,217,0.08)_0px_0px_0px_1px_inset]"
+      className="sticky top-0 z-50 w-full border-b border-border bg-surface-header backdrop-blur-md shadow-inset-header"
       role="banner"
     >
       <div
@@ -24,10 +24,10 @@ export function SiteHeader() {
           href={routes.home}
           className="flex w-fit shrink-0 flex-col gap-0 leading-[1.1] hover:opacity-90"
         >
-          <span className="font-sans text-sm font-semibold tracking-tight text-[#f0f0f0] sm:text-base">
+          <span className="font-sans text-sm font-semibold tracking-tight text-fg sm:text-base">
             {site.name}
           </span>
-          <span className="font-sans text-[10px] font-medium uppercase tracking-[0.06em] text-[#464a4d] sm:text-[11px]">
+          <span className="font-sans text-[10px] font-medium uppercase tracking-[0.06em] text-fg-soft sm:text-[11px]">
             {site.byline}
           </span>
         </Link>

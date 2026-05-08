@@ -5,19 +5,19 @@ import { cn } from "@/lib/utils";
 
 const FEATURES = [
   {
-    accent: "bg-[#3b9eff]",
+    accent: "bg-accent-blue",
     title: "Google workspace SSO",
     description:
       "Internal users authenticate with 1337-crm’s Google integration. Sessions are JWT-based; user profiles sync to MongoDB on every sign-in.",
   },
   {
-    accent: "bg-[#11ff99]",
+    accent: "bg-accent-green",
     title: "Performance-minded defaults",
     description:
       "Server components by default, pragmatic utilities, and hooks when you need isolation on the client.",
   },
   {
-    accent: "bg-[#ffa057]",
+    accent: "bg-accent-orange",
     title: "Ready for real billing",
     description:
       "API routes for health, webhooks, and cron are stubbed where your provider keys will land.",
@@ -32,13 +32,13 @@ export function FeaturesSection() {
     >
       <div className="mx-auto flex max-w-6xl flex-col gap-14">
         <div className="max-w-3xl">
-          <p className="font-sans text-[0.75rem] font-medium uppercase tracking-[0.08em] text-[#464a4d]">
+          <p className="font-sans text-[0.75rem] font-medium uppercase tracking-[0.08em] text-fg-soft">
             Product
           </p>
-          <h2 id="features-heading" className="mt-3 text-[#f0f0f0]">
+          <h2 id="features-heading" className="mt-3 text-fg">
             What you get on day one.
           </h2>
-          <p className="mt-5 max-w-2xl font-sans leading-relaxed text-[#a1a4a5]">
+          <p className="mt-5 max-w-2xl font-sans leading-relaxed text-fg-muted">
             Everything here is designed to read as one system—tone, spacing, and surfaces
             pulled from the same rulebook.
           </p>
@@ -48,14 +48,14 @@ export function FeaturesSection() {
           {FEATURES.map(({ accent, title, description }) => (
             <li
               key={title}
-              className="flex flex-col rounded-2xl border border-[rgba(214,235,253,0.19)] bg-black p-8 [box-shadow:rgba(176,199,217,0.085)_0px_0px_0px_1px]"
+              className="flex flex-col rounded-2xl border border-border bg-surface-card p-8 shadow-inset-card"
             >
               <span
                 className={`mb-8 h-1 w-8 rounded-full ${accent} opacity-90`}
                 aria-hidden
               />
-              <h3 className="text-[#f0f0f0]">{title}</h3>
-              <p className="mt-4 font-sans text-sm leading-relaxed text-[#a1a4a5]">
+              <h3 className="text-fg">{title}</h3>
+              <p className="mt-4 font-sans text-sm leading-relaxed text-fg-muted">
                 {description}
               </p>
             </li>

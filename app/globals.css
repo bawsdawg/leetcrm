@@ -1,9 +1,156 @@
 @import "tailwindcss";
 
-/* Body/UI Inter (DESIGN.md) — headings use serif (Fraunces as Domaine stand-in). */
-@theme {
+/**
+ * Apex semantic theme — DESIGN.md palettes expressed as inverted pairs.
+ * Dark (default): void black canvas, near-white typography, icy frost borders.
+ * Light: inverted canvas/neutrals/frost complements; accents use contrast-safe pairs where needed.
+ * Use Tailwind semantic colors (`bg-canvas`, `text-fg`, `border-border`, …); avoid raw `#`/`rgb` in JSX.
+ */
+
+@theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-display-serif), ui-serif, Georgia, "Times New Roman", serif;
+
+  --color-canvas: var(--ds-canvas);
+  --color-fg: var(--ds-fg);
+  --color-fg-muted: var(--ds-fg-muted);
+  --color-fg-soft: var(--ds-fg-soft);
+  --color-fg-quiet: var(--ds-fg-quiet);
+
+  --color-border: var(--ds-border);
+  --color-border-muted: var(--ds-border-muted);
+  --color-border-soft: var(--ds-border-soft);
+  --color-border-pill: var(--ds-border-pill);
+  --color-border-drawer-soft: var(--ds-border-drawer-soft);
+  --color-border-hover-soft: var(--ds-border-hover);
+
+  --color-surface-muted: var(--ds-surface-muted);
+  --color-surface-muted-strong: var(--ds-surface-muted-strong);
+  --color-surface-active: var(--ds-surface-active);
+  --color-surface-glass: var(--ds-surface-glass);
+  --color-surface-card: var(--ds-surface-card);
+  --color-surface-header: var(--ds-surface-header);
+
+  --color-accent: var(--ds-accent);
+  --color-accent-warning: var(--ds-accent-warning);
+
+  --color-solid-cta-bg: var(--ds-solid-cta-bg);
+  --color-solid-cta-fg: var(--ds-solid-cta-fg);
+  --color-solid-cta-hover: var(--ds-solid-cta-hover);
+
+  --color-accent-blue: var(--ds-accent-blue);
+  --color-accent-green: var(--ds-accent-green);
+  --color-accent-orange: var(--ds-accent-orange);
+
+  --color-skeleton: var(--ds-skeleton);
+
+  --color-google-banner: var(--ds-google-banner-bg);
+}
+
+:root {
+  color-scheme: dark;
+
+  --ds-canvas: #000000;
+  --ds-fg: #f0f0f0;
+  --ds-fg-muted: #a1a4a5;
+  --ds-fg-soft: #464a4d;
+  --ds-fg-quiet: #494949;
+
+  --ds-border: rgb(214 235 253 / 0.19);
+  --ds-border-muted: rgb(214 235 253 / 0.09);
+  --ds-border-soft: rgb(214 235 253 / 0.12);
+  --ds-border-pill: rgb(214 235 253 / 0.13);
+  --ds-border-drawer-soft: rgb(214 235 253 / 0.15);
+  --ds-border-hover: rgb(214 235 253 / 0.08);
+
+  --ds-surface-muted: rgb(255 255 255 / 0.04);
+  --ds-surface-muted-strong: rgb(255 255 255 / 0.07);
+  --ds-surface-active: rgb(255 255 255 / 0.06);
+  --ds-surface-glass: rgb(255 255 255 / 0.03);
+  --ds-surface-card: rgb(0 0 0 / 0.4);
+  --ds-surface-header: rgb(0 0 0 / 0.85);
+
+  --ds-edge-inset: inset 0 1px 0 0 rgb(176 199 217 / 0.045),
+    inset 0 -1px 0 0 rgb(176 199 217 / 0.045);
+  --ds-shadow-inset-header: rgb(176 199 217 / 0.08) 0 0 0 1px inset;
+  --ds-shadow-inset-card: rgb(176 199 217 / 0.085) 0 0 0 1px inset;
+  --ds-shadow-inset-card-strong: rgb(176 199 217 / 0.145) 0 0 0 1px inset;
+  --ds-shadow-inset-cta: rgb(176 199 217 / 0.085) 0 0 0 1px inset;
+
+  --ds-cta-bg: radial-gradient(
+      120% 140% at 20% -20%,
+      rgb(59 158 255 / 0.06),
+      transparent 52%
+    ),
+    linear-gradient(#000000, #000000);
+
+  --ds-accent: #0081fd;
+  --ds-accent-warning: #ffa057;
+
+  --ds-solid-cta-bg: #ffffff;
+  --ds-solid-cta-fg: #000000;
+  --ds-solid-cta-hover: #e8e9ea;
+
+  --ds-accent-blue: #3b9eff;
+  --ds-accent-green: #11ff99;
+  --ds-accent-orange: #ffa057;
+
+  --ds-skeleton: rgb(214 235 253 / 0.07);
+
+  /** Google notice panel */
+  --ds-google-banner-bg: rgb(255 255 255 / 0.03);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --ds-canvas: #ffffff;
+  --ds-fg: #0f0f0f;
+  --ds-fg-muted: #5e5b5a;
+  --ds-fg-soft: #b9b6b3;
+  --ds-fg-quiet: #bab6b6;
+
+  --ds-border: rgb(41 20 2 / 0.19);
+  --ds-border-muted: rgb(41 20 2 / 0.09);
+  --ds-border-soft: rgb(41 20 2 / 0.12);
+  --ds-border-pill: rgb(41 20 2 / 0.13);
+  --ds-border-drawer-soft: rgb(41 20 2 / 0.15);
+  --ds-border-hover: rgb(41 20 2 / 0.08);
+
+  --ds-surface-muted: rgb(0 0 0 / 0.04);
+  --ds-surface-muted-strong: rgb(0 0 0 / 0.07);
+  --ds-surface-active: rgb(0 0 0 / 0.06);
+  --ds-surface-glass: rgb(0 0 0 / 0.03);
+  --ds-surface-card: rgb(255 255 255 / 0.65);
+  --ds-surface-header: rgb(255 255 255 / 0.88);
+
+  --ds-edge-inset: inset 0 1px 0 0 rgb(79 56 38 / 0.06), inset 0 -1px 0 0 rgb(79 56 38 / 0.06);
+  --ds-shadow-inset-header: rgb(79 56 38 / 0.1) 0 0 0 1px inset;
+  --ds-shadow-inset-card: rgb(79 56 38 / 0.1) 0 0 0 1px inset;
+  --ds-shadow-inset-card-strong: rgb(79 56 38 / 0.14) 0 0 0 1px inset;
+  --ds-shadow-inset-cta: rgb(79 56 38 / 0.1) 0 0 0 1px inset;
+
+  --ds-cta-bg: radial-gradient(
+      120% 140% at 80% -20%,
+      rgb(196 97 0 / 0.07),
+      transparent 52%
+    ),
+    linear-gradient(#ffffff, #ffffff);
+
+  --ds-accent: #0081fd;
+  --ds-accent-warning: #005fa8;
+
+  --ds-solid-cta-bg: #000000;
+  --ds-solid-cta-fg: #ffffff;
+  --ds-solid-cta-hover: #2a2a2a;
+
+  --ds-accent-blue: #c46100;
+  --ds-accent-green: #ee0066;
+  --ds-accent-orange: #005fa8;
+
+  --ds-skeleton: rgb(41 20 2 / 0.08);
+
+  --ds-google-banner-bg: rgb(0 0 0 / 0.03);
 }
 
 /*
@@ -115,7 +262,7 @@
 @layer utilities {
   /**
    * Opt-in DESIGN “Display Hero” (96px) — use once per page above the fold.
-   * Example: `<h1 className="text-display-hero text-[#f0f0f0]">…</h1>`
+   * Example: `<h1 className="text-display-hero text-fg">…</h1>`
    */
   .text-display-hero {
     font-family: var(--font-serif);
@@ -125,5 +272,29 @@
     letter-spacing: -0.015em;
     font-optical-sizing: auto;
     text-wrap: balance;
+  }
+
+  .shadow-inset-header {
+    box-shadow: var(--ds-shadow-inset-header);
+  }
+
+  .shadow-inset-card {
+    box-shadow: var(--ds-shadow-inset-card);
+  }
+
+  .shadow-inset-card-strong {
+    box-shadow: var(--ds-shadow-inset-card-strong);
+  }
+
+  .shadow-inset-cta {
+    box-shadow: var(--ds-shadow-inset-cta);
+  }
+
+  .edge-inset-lines {
+    box-shadow: var(--ds-edge-inset);
+  }
+
+  .bg-cta-panel {
+    background-image: var(--ds-cta-bg);
   }
 }

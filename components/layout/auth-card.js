@@ -9,17 +9,16 @@ export function AuthCard({ title, subtitle, children, className }) {
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-8">
       <header>
-        <h1 data-heading="compact" className="text-[#f0f0f0]">
+        <h1 data-heading="compact" className="text-fg">
           {title}
         </h1>
         {subtitle ? (
-          <p className="mt-2 text-sm text-[#a1a4a5]">{subtitle}</p>
+          <p className="mt-2 text-sm text-fg-muted">{subtitle}</p>
         ) : null}
       </header>
       <section
         className={cn(
-          "rounded-2xl border border-[rgba(214,235,253,0.19)] bg-black p-8",
-          "[box-shadow:rgba(176,199,217,0.145)_0px_0px_0px_1px]",
+          "rounded-2xl border border-border bg-surface-card p-8 shadow-inset-card-strong",
           className,
         )}
       >

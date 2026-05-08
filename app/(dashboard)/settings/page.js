@@ -18,16 +18,16 @@ export default async function SettingsPage() {
   return (
     <main className="flex flex-1 flex-col gap-6 p-6 md:p-10">
       <div className="flex flex-col gap-2">
-        <h1 className="text-[#f0f0f0]">Settings</h1>
-        <p className="max-w-prose font-sans text-sm text-[#a1a4a5]">
+        <h1 className="text-fg">Settings</h1>
+        <p className="max-w-prose font-sans text-sm text-fg-muted">
           Account details come from your session; deeper controls (team, billing) can
           stack on this page.
         </p>
       </div>
 
-      <ul className="max-w-lg list-inside list-disc space-y-2 font-sans text-sm text-[#a1a4a5]">
+      <ul className="max-w-lg list-inside list-disc space-y-2 font-sans text-sm text-fg-muted">
         <li>
-          <span className="text-[#464a4d]">Access model:</span> {tier}
+          <span className="text-fg-soft">Access model:</span> {tier}
         </li>
         <li>
           Profile fields are mirrored from Google on each sign-in and stored in MongoDB

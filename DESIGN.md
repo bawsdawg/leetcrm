@@ -4,14 +4,17 @@
 
 Resend's website is a dark, cinematic canvas that treats email infrastructure like a luxury product. The entire page is draped in pure black (`#000000`) with text that glows in near-white (`#f0f0f0`), creating a theater-like experience where content performs on a void stage. This isn't the typical developer-tool darkness — it's the controlled darkness of a photography gallery, where every element is lit with intention and nothing competes for attention.
 
+**Apex:** we keep that **dark default** in production UI, and implement **light mode** as the same system inverted at the token layer (`<html data-theme="light">`): canvas and primary text swap, frost borders become their warm complement at matching opacities, and components consume **semantic Tailwind tokens** (`bg-canvas`, `text-fg`, `border-border`, …) defined in `app/globals.css` — never one-off duplicate components per theme.
+
 The typography system is the star of the show. Three carefully chosen typefaces create a hierarchy that feels both editorial and technical: Domaine Display (a Klim Type Foundry serif) appears at massive 96px for hero headlines with barely-there line-height (1.00) and negative tracking (-0.96px), creating display text that feels like a magazine cover. ABC Favorit (by Dinamo) handles section headings with an even more aggressive letter-spacing (-2.8px at 56px), giving a compressed, engineered quality to mid-tier text. Inter takes over for body and UI, providing the clean readability that lets the display fonts shine. Commit Mono rounds out the family for code blocks.
 
 What makes Resend distinctive is its icy, blue-tinted border system. Instead of neutral gray borders, Resend uses `rgba(214, 235, 253, 0.19)` — a frosty, slightly blue-tinted line at 19% opacity that gives every container and divider a cold, crystalline quality against the black background. Combined with pill-shaped buttons (9999px radius), multi-color accent system (orange, green, blue, yellow, red — each with its own CSS variable scale), and OpenType stylistic sets (`"ss01"`, `"ss03"`, `"ss04"`, `"ss11"`), the result is a design system that feels premium, precise, and quietly confident.
 
 **Key Characteristics:**
-- Pure black background with near-white (`#f0f0f0`) text — theatrical, gallery-like darkness
+- **Dark default**, optional **light** via `data-theme` + CSS variables — theatrical void in dark mode; paper-bright canvas in light (`bg-canvas`)
+- Near-white (`#f0f0f0`) primary type in dark; deep neutral in light — always `text-fg` in code
 - Three-font hierarchy: Domaine Display (serif hero), ABC Favorit (geometric sections), Inter (body/UI)
-- Icy blue-tinted borders: `rgba(214, 235, 253, 0.19)` — every border has a cold, crystalline shimmer
+- Icy frost in dark, warm complement in light — always `border-border` / softer `border-border-*` tokens in code (not raw `rgba` literals)
 - Multi-color accent system: orange, green, blue, yellow, red — each with numbered CSS variable scales
 - Pill-shaped buttons and tags (9999px radius) with transparent backgrounds
 - OpenType stylistic sets (`"ss01"`, `"ss03"`, `"ss04"`, `"ss11"`) on display fonts
@@ -66,6 +69,53 @@ What makes Resend distinctive is its icy, blue-tinted border system. Instead of 
 - **Ring Shadow** (`rgba(176, 199, 217, 0.145) 0px 0px 0px 1px`): Blue-tinted shadow-as-border
 - **Focus Ring** (`rgb(0, 0, 0) 0px 0px 0px 8px`): Heavy black focus ring
 - **Subtle Shadow** (`rgba(0, 0, 0, 0.1) 0px 1px 3px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px`): Minimal card elevation
+
+### Theme modes (Dark default + Light inversion)
+
+Resend.com is naturally **dark-first**. Apex keeps that as **`data-theme="dark"`** on `<html>` (the default canvas and tokens in `app/globals.css`).
+
+We also ship a **light appearance** (`data-theme="light"`) meant as an **invert of the neutral spine**:
+
+| Dark (default) | Light (paired) |
+|----------------|----------------|
+| Void black `#000000` canvas | Paper white `#ffffff` canvas |
+| Near-white `#f0f0f0` primary text | Deep neutral `#0f0f0f` primary text |
+| Silver `#a1a4a5` muted text | `#5e5b5a` (inverted-role equivalent) |
+| Dark gray `#464a4d` tertiary | `#b9b6b3` |
+| `#494949` quaternary | `#bab6b6` |
+| Icy frost `rgb(214 235 253 / …)` borders | Warm complement `rgb(41 20 2 / …)` at the same alphas |
+
+**Accent & focus blues** reuse `#0081fd` across themes where contrast allows. **Small accent badges** used on marketing cards use theme-specific hues (including RGB-inverted complements in light mode) so chips stay vivid on both canvases.
+
+**Persistence:** the user preference is saved as `apex-theme` in `localStorage` (`"dark"` | `"light"`). A small inline script in `app/layout.js` runs before paint so the first frame matches storage (no flash).
+
+**UI control:** the header nav includes a **theme toggle** (sun / moon) for everyone—signed in or not—on **desktop** and **mobile** (next to the menu control).
+
+### Semantic tokens (Tailwind) — use these in components
+
+Do **not** hardcode hex or raw `rgba` in JSX for surfaces, text, or borders. Map everything to CSS variables defined in `app/globals.css` and exposed through `@theme inline` so new UI stays theme-safe.
+
+| Role | Tailwind examples | Notes |
+|------|-------------------|--------|
+| Page / section background | `bg-canvas` | Replaces `bg-black` |
+| Primary text | `text-fg` | Headings, body emphasis |
+| Secondary text | `text-fg-muted` | Supporting copy, nav idle |
+| Tertiary / labels | `text-fg-soft` | Eyebrows, captions |
+| Quaternary / code-meta | `text-fg-quiet` | IDs, timestamps |
+| Default stroke | `border-border`, `divide-border`, `outline-accent` where needed | Frost or warm invert |
+| Softer strokes | `border-border-muted`, `border-border-soft`, `border-border-pill`, `border-border-drawer-soft`, `border-border-hover-soft` | Section bands, pills, drawer buttons |
+| Glass / hover chips | `bg-surface-muted`, `bg-surface-muted-strong`, `bg-surface-active`, `bg-surface-glass` | Replaces manual `white/4` overlays |
+| Header scrim | `bg-surface-header` + existing blur | Translucent bar |
+| Elevated panels | `bg-surface-card` | Cards on canvas (both themes) |
+| Solid CTA (inverts per theme) | `bg-solid-cta-bg text-solid-cta-fg hover:bg-solid-cta-hover` |Was white/black pill pair |
+| Marketing accents | `bg-accent-blue`, `bg-accent-green`, `bg-accent-orange` | Theme-scoped hues |
+| Warning / SSO notice copy | `text-accent-warning`, `border-border`, `bg-google-banner` | |
+| Focus | `outline-accent` (`#0081fd`) | Prefer on interactive controls |
+| Inset shadows (depth) | `shadow-inset-header`, `shadow-inset-card`, `shadow-inset-card-strong`, `shadow-inset-cta` | DESIGN ring shadows |
+| Edge hairlines | `edge-inset-lines` | Intro-section band |
+| CTA slab fill | `bg-cta-panel` | Radial veil + canvas fill |
+
+**Hooks:** Client components call `useTheme()` / `useThemeToggle()` from `components/theme/use-theme.js` (synced to `data-theme` via `MutationObserver`).
 
 ## 3. Typography Rules
 
@@ -227,8 +277,8 @@ What makes Resend distinctive is its icy, blue-tinted border system. Instead of 
 ## 7. Do's and Don'ts
 
 ### Do
-- Use pure black (`#000000`) as the page background — the void is the canvas
-- Apply frost borders (`rgba(214, 235, 253, 0.19)`) for all structural lines — they're the blue-tinted signature
+- Default to the **dark** canvas via semantic `bg-canvas` (void black in dark mode, paper white when `data-theme="light"`)
+- Apply structural borders via **`border-border`** (icy frost in dark, warm complement in light) — never ad-hoc gray strokes
 - Use Domaine Display ONLY for hero headings (96px), ABC Favorit for section headings, Inter for everything else
 - Enable OpenType `"ss01"`, `"ss04"`, `"ss11"` on Domaine and ABC Favorit text
 - Apply pill radius (9999px) to primary CTAs and tags
@@ -237,8 +287,8 @@ What makes Resend distinctive is its icy, blue-tinted border system. Instead of 
 - Use +0.35px letter-spacing on ABC Favorit nav links — the only positive tracking
 
 ### Don't
-- Don't lighten the background above `#000000` — the pure black void is non-negotiable
-- Don't use neutral gray borders — all borders must have the frost blue tint
+- Don't hardcode `#000000` / `#f0f0f0` / raw `rgba(214,235,253,…)` in components — use **semantic Tailwind tokens** from `app/globals.css` so light mode stays correct
+- Don't use flat neutral gray borders — use **`border-border`** and the softer border tokens so the frost / warm language stays consistent
 - Don't apply Domaine Display to body text — it's a display-only serif
 - Don't mix accent colors in the same component — each feature gets one accent color
 - Don't use box-shadow for elevation on the dark background — use frost borders instead
@@ -277,14 +327,13 @@ What makes Resend distinctive is its icy, blue-tinted border system. Instead of 
 ## 9. Agent Prompt Guide
 
 ### Quick Color Reference
-- Background: Void Black (`#000000`)
-- Primary text: Near White (`#f0f0f0`)
-- Secondary text: Silver (`#a1a4a5`)
-- Border: Frost Border (`rgba(214, 235, 253, 0.19)`)
-- Orange accent: `#ff801f`
-- Green accent: `#11ff99` (at 18% opacity)
+- **Always start from tokens:** `bg-canvas`, `text-fg`, `text-fg-muted`, `border-border`, `outline-accent`
+- Dark defaults (values also listed in §2): Void Black / Near White / icy frost
+- Light mode: invert the neutral spine via `[data-theme="light"]` — see §2 “Theme modes”
+- Orange accent: `#ff801f` (marketing); feature chips use `bg-accent-*` utilities
+- Green accent: `#11ff99` (at 18% opacity in reference comps)
 - Blue accent: `#3b9eff`
-- Focus ring: `rgb(0, 0, 0) 0px 0px 0px 8px`
+- Focus: `outline-accent` → `#0081fd` in code
 
 ### Example Component Prompts
 - "Create a hero section on pure black (#000000) background. Headline at 96px Domaine Display weight 400, line-height 1.00, letter-spacing -0.96px, near-white (#f0f0f0) text, OpenType 'ss01 ss04 ss11'. Subtitle at 20px ABC Favorit weight 400, line-height 1.30. Two pill buttons: white solid (#ffffff, 9999px radius) and transparent with frost border (rgba(214,235,253,0.19))."
@@ -294,8 +343,8 @@ What makes Resend distinctive is its icy, blue-tinted border system. Instead of 
 - "Design an accent badge: background #ff5900 at 22% opacity, text #ffa057, 9999px radius, 12px Inter weight 500."
 
 ### Iteration Guide
-1. Start with pure black — everything floats in the void
-2. Frost borders (`rgba(214, 235, 253, 0.19)`) are the universal structural element — not gray, not neutral
+1. Start with **`bg-canvas`** and **`text-fg`** — one pair covers both theme appearances
+2. Frost / warm borders (`border-border` and family) are the universal structural element — not gray, not per-theme JSX forks
 3. Three fonts, three roles: Domaine (hero), ABC Favorit (sections), Inter (body) — never cross
 4. OpenType stylistic sets are mandatory on display fonts — they define the character
 5. Multi-color accents at low opacity (12–42%) for backgrounds, full opacity for text

@@ -11,8 +11,8 @@ export default function TermsPage() {
         shellPaddingX,
       )}
     >
-      <h1 className="text-[#f0f0f0]">Terms</h1>
-      <p className="text-sm text-[#a1a4a5]">Terms content goes here.</p>
+      <h1 className="text-fg">Terms</h1>
+      <p className="text-sm text-fg-muted">Terms content goes here.</p>
     </main>
   );
 }

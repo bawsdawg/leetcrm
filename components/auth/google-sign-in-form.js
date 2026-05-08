@@ -37,13 +37,13 @@ export function GoogleSignInForm({ error, callbackUrl }) {
     >
       <div className="flex flex-col gap-6">
         {message ? (
-          <p className="rounded-xl border border-[rgba(214,235,253,0.19)] bg-white/[0.03] px-4 py-3 font-sans text-sm leading-relaxed text-[#ffa057]">
+          <p className="rounded-xl border border-border bg-google-banner px-4 py-3 font-sans text-sm leading-relaxed text-accent-warning">
             {message}
           </p>
         ) : null}
         <button
           type="button"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[rgba(214,235,253,0.19)] bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-[#f0f0f0] hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0081fd]"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border bg-surface-muted px-4 py-2.5 text-sm font-semibold text-fg hover:bg-surface-muted-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           onClick={handleGoogle}
         >
           Continue with Google

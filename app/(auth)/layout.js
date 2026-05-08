@@ -5,7 +5,7 @@ export default function AuthLayout({ children }) {
   return (
     <div
       className={cn(
-        "flex flex-1 flex-col items-center justify-center bg-black py-10",
+        "flex flex-1 flex-col items-center justify-center bg-canvas py-10",
         shellPaddingX,
       )}
     >

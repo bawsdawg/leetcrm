@@ -7,6 +7,7 @@ import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { routes } from "@/config/routes";
 import { shellPaddingX } from "@/config/shell";
 import { cn } from "@/lib/utils";
@@ -27,8 +28,8 @@ function NavLink({ href, label }) {
       className={cn(
         "inline-flex shrink-0 items-center justify-center rounded-full border px-2.5 py-1.5 text-xs transition md:text-sm",
         active
-          ? "border-[rgba(214,235,253,0.19)] bg-white/[0.06] text-[#f0f0f0]"
-          : "border-transparent text-[#a1a4a5] hover:border-[rgba(214,235,253,0.08)] hover:bg-white/[0.04] hover:text-[#f0f0f0]",
+          ? "border-border bg-surface-active text-fg"
+          : "border-transparent text-fg-muted hover:border-border-hover-soft hover:bg-surface-muted hover:text-fg",
       )}
     >
       {label}
@@ -47,8 +48,8 @@ function DrawerNavLink({ href, label, onNavigate }) {
       className={cn(
         "-mx-1 flex rounded-xl border px-4 py-3.5 text-base font-medium transition",
         active
-          ? "border-[rgba(214,235,253,0.19)] bg-white/[0.06] text-[#f0f0f0]"
-          : "border-transparent text-[#a1a4a5] hover:border-[rgba(214,235,253,0.12)] hover:bg-white/[0.04] hover:text-[#f0f0f0]",
+          ? "border-border bg-surface-active text-fg"
+          : "border-transparent text-fg-muted hover:border-border-soft hover:bg-surface-muted hover:text-fg",
       )}
       onClick={onNavigate}
     >
@@ -60,7 +61,7 @@ function DrawerNavLink({ href, label, onNavigate }) {
 function NavDivider() {
   return (
     <span
-      className="hidden h-6 w-px shrink-0 self-center bg-[rgba(214,235,253,0.19)] md:block"
+      className="hidden h-6 w-px shrink-0 self-center bg-border md:block"
       aria-hidden
     />
   );
@@ -69,7 +70,7 @@ function NavDivider() {
 function HamburgerIcon({ open }) {
   return (
     <svg
-      className="h-5 w-5 text-[#f0f0f0]"
+      className="h-5 w-5 text-fg"
       aria-hidden
       fill="none"
       viewBox="0 0 24 24"
@@ -126,9 +127,12 @@ export function SiteNav() {
           ))}
         </div>
 
+        <NavDivider />
+        <ThemeToggle />
+
         {status === "loading" ? (
           <span
-            className="h-9 w-[8.75rem] shrink-0 animate-pulse rounded-full bg-[rgba(214,235,253,0.07)]"
+            className="h-9 w-[8.75rem] shrink-0 animate-pulse rounded-full bg-skeleton"
             aria-hidden
           />
         ) : null}
@@ -150,7 +154,7 @@ export function SiteNav() {
             <NavDivider />
             <button
               type="button"
-              className="inline-flex shrink-0 items-center justify-center rounded-full border border-transparent px-3 py-1.5 text-sm text-[#a1a4a5] hover:bg-white/[0.04] hover:text-[#f0f0f0]"
+              className="inline-flex shrink-0 items-center justify-center rounded-full border border-transparent px-3 py-1.5 text-sm text-fg-muted hover:bg-surface-muted hover:text-fg"
               onClick={() => signOut({ callbackUrl: routes.home })}
             >
               Sign out
@@ -159,18 +163,19 @@ export function SiteNav() {
         ) : null}
       </nav>
 
-      <div className="flex flex-1 items-center justify-end md:hidden">
+      <div className="flex flex-1 items-center justify-end gap-2 md:hidden">
+        <ThemeToggle size="comfortable" />
         {status === "loading" ? (
           <span
-            className="h-10 w-[7.25rem] shrink-0 animate-pulse rounded-full bg-[rgba(214,235,253,0.07)]"
+            className="h-10 w-[7.25rem] shrink-0 animate-pulse rounded-full bg-skeleton"
             aria-hidden
           />
         ) : (
           <button
             type="button"
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(214,235,253,0.19)] bg-white/[0.04] hover:bg-white/[0.07]",
-              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0081fd]",
+              "flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface-muted hover:bg-surface-muted-strong",
+              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
             )}
             aria-expanded={drawerOpen}
             aria-controls="mobile-nav-drawer"
@@ -185,7 +190,7 @@ export function SiteNav() {
       {drawerOpen && typeof document !== "undefined"
         ? createPortal(
             <div
-              className="fixed inset-0 z-[200] flex min-h-0 flex-col bg-black text-[#f0f0f0] md:hidden"
+              className="fixed inset-0 z-[200] flex min-h-0 flex-col bg-canvas text-fg md:hidden"
               id="mobile-nav-drawer"
               role="dialog"
               aria-modal="true"
@@ -200,17 +205,17 @@ export function SiteNav() {
             >
               <div
                 className={cn(
-                  "flex shrink-0 items-center justify-between border-b border-[rgba(214,235,253,0.19)] py-4",
+                  "flex shrink-0 items-center justify-between border-b border-border py-4",
                   shellPaddingX,
                 )}
               >
-                <span className="font-sans text-xs font-semibold uppercase tracking-[0.08em] text-[#464a4d]">
+                <span className="font-sans text-xs font-semibold uppercase tracking-[0.08em] text-fg-soft">
                   Menu
                 </span>
                 <button
                   ref={drawerCloseRef}
                   type="button"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-[#a1a4a5] hover:bg-white/[0.06] hover:text-[#f0f0f0]"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-fg-muted hover:bg-surface-active hover:text-fg"
                   aria-label="Close menu"
                   onClick={close}
                 >
@@ -249,7 +254,7 @@ export function SiteNav() {
                     <DrawerNavLink href={routes.settings} label="Settings" onNavigate={close} />
                     <button
                       type="button"
-                      className="-mx-1 mt-2 flex w-full rounded-xl border border-[rgba(214,235,253,0.15)] px-4 py-3.5 text-left text-base font-medium text-[#a1a4a5] hover:bg-white/[0.04] hover:text-[#f0f0f0]"
+                      className="-mx-1 mt-2 flex w-full rounded-xl border border-border-drawer-soft px-4 py-3.5 text-left text-base font-medium text-fg-muted hover:bg-surface-muted hover:text-fg"
                       onClick={() => {
                         close();
                         void signOut({ callbackUrl: routes.home });

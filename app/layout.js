@@ -2,6 +2,7 @@ import { Fraunces, Inter } from "next/font/google";
 
 import { SiteHeader } from "@/components/layout/site-header";
 import { AppProviders } from "@/components/providers/app-providers";
+import { themeInitScriptInnerHtml } from "@/components/theme/theme-init-script";
 import { site } from "@/config/site";
 
 import "./globals.css";
@@ -32,10 +33,17 @@ export default function RootLayout({ children }) {
     <html
       lang="en"
       className={`${inter.variable} ${displaySerif.variable}`}
+      data-theme="dark"
+      suppressHydrationWarning
     >
       <body
-        className={`${inter.className} flex min-h-screen flex-col bg-black font-sans text-[#f0f0f0] antialiased`}
+        className={`${inter.className} flex min-h-screen flex-col bg-canvas font-sans text-fg antialiased`}
+        suppressHydrationWarning
       >
+        <script
+          dangerouslySetInnerHTML={{ __html: themeInitScriptInnerHtml() }}
+          suppressHydrationWarning
+        />
         <AppProviders>
           <SiteHeader />
           <div className="flex min-h-0 flex-1 flex-col">{children}</div>

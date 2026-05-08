@@ -11,8 +11,8 @@ export default function PrivacyPage() {
         shellPaddingX,
       )}
     >
-      <h1 className="text-[#f0f0f0]">Privacy</h1>
-      <p className="text-sm text-[#a1a4a5]">Policy content goes here.</p>
+      <h1 className="text-fg">Privacy</h1>
+      <p className="text-sm text-fg-muted">Policy content goes here.</p>
     </main>
   );
 }
