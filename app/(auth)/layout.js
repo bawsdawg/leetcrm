@@ -1,6 +1,14 @@
+import { shellPaddingX } from "@/config/shell";
+import { cn } from "@/lib/utils";
+
 export default function AuthLayout({ children }) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-black px-4 py-10">
+    <div
+      className={cn(
+        "flex flex-1 flex-col items-center justify-center bg-black py-10",
+        shellPaddingX,
+      )}
+    >
       {children}
     </div>
   );

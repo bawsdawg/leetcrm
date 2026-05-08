@@ -2,15 +2,22 @@ import Link from "next/link";
 
 import { routes } from "@/config/routes";
 import { site } from "@/config/site";
+import { shellPaddingX } from "@/config/shell";
+import { cn } from "@/lib/utils";
 
 export function MarketingFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-auto border-t border-[rgba(214,235,253,0.12)] px-6 py-12">
+    <footer
+      className={cn(
+        "mt-auto border-t border-[rgba(214,235,253,0.12)] py-12",
+        shellPaddingX,
+      )}
+    >
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-8 sm:flex-row sm:gap-4">
         <p className="text-center font-sans text-[0.75rem] tracking-tight text-[#464a4d] sm:text-left">
-          © {year} {site.name}. Crafted on a black stage.
+          © {year} {site.branding}
         </p>
         <nav
           aria-label="Footer links"

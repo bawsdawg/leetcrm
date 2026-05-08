@@ -8,8 +8,10 @@ This repo is a Next.js (App Router) SaaS scaffold aligned with `DESIGN.md` and t
 |-----|----------|---------|
 | `/` | `app/(marketing)/page.js` | Landing (public) |
 | `/privacy`, `/terms` | `app/(marketing)/privacy`, `terms` | Legal / marketing |
-| `/login`, `/sign-up` | `app/(auth)/login`, `sign-up` | Auth flows |
-| `/dashboard`, `/settings` | `app/(dashboard)/dashboard`, `settings` | App shell (protected area by convention) |
+| `/login` | `app/(auth)/login` | Google SSO (workspace @searchmind.dk) |
+| `/sign-up` | `app/(auth)/sign-up` | Redirects to `/login` (sign-up hidden for now) |
+| `/dashboard`, `/settings` | `app/(dashboard)/dashboard`, `settings` | App shell (JWT session + middleware enforced) |
+| `/api/auth/*` | `app/api/auth/[...nextauth]/route.js` | Auth.js OAuth callbacks |
 | `/api/health` | `app/api/health/route.js` | Uptime / probes |
 | `/api/webhooks/stripe` | `app/api/webhooks/stripe/route.js` | Stripe webhooks |
 | `/api/cron` | `app/api/cron/route.js` | Scheduled jobs (e.g. Vercel Cron) |
@@ -19,7 +21,7 @@ This repo is a Next.js (App Router) SaaS scaffold aligned with `DESIGN.md` and t
 | Path | Role |
 |------|------|
 | `app/(marketing)/` | Public marketing pages (route group, no URL segment) |
-| `app/(auth)/` | Login / sign-up layouts and pages |
+| `app/(auth)/` | Login layouts and pages (workspace Google SSO; `/sign-up` redirects) |
 | `app/(dashboard)/` | Authenticated app chrome (sidebar + nested routes) |
 | `app/api/` | Route handlers (REST, webhooks, cron) |
 | `actions/` | Server Actions (`"use server"`) — auth, billing stubs |

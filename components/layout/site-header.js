@@ -2,21 +2,34 @@ import Link from "next/link";
 
 import { routes } from "@/config/routes";
 import { site } from "@/config/site";
+import { shellPaddingHeaderY, shellPaddingX } from "@/config/shell";
+import { cn } from "@/lib/utils";
 
 import { SiteNav } from "./site-nav";
 
 export function SiteHeader() {
   return (
     <header
-      className="sticky top-0 z-50 border-b border-[rgba(214,235,253,0.19)] bg-black/85 backdrop-blur-md [box-shadow:rgba(176,199,217,0.08)_0px_0px_0px_1px_inset]"
+      className="sticky top-0 z-50 w-full border-b border-[rgba(214,235,253,0.19)] bg-black/85 backdrop-blur-md [box-shadow:rgba(176,199,217,0.08)_0px_0px_0px_1px_inset]"
       role="banner"
     >
-      <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:px-6">
+      <div
+        className={cn(
+          "flex w-full max-w-none flex-row items-center justify-between gap-4 md:gap-6",
+          shellPaddingX,
+          shellPaddingHeaderY,
+        )}
+      >
         <Link
           href={routes.home}
-          className="shrink-0 text-sm font-medium tracking-tight text-[#f0f0f0]"
+          className="flex w-fit shrink-0 flex-col gap-0 leading-[1.1] hover:opacity-90"
         >
-          {site.name}
+          <span className="font-sans text-sm font-semibold tracking-tight text-[#f0f0f0] sm:text-base">
+            {site.name}
+          </span>
+          <span className="font-sans text-[10px] font-medium uppercase tracking-[0.06em] text-[#464a4d] sm:text-[11px]">
+            {site.byline}
+          </span>
         </Link>
         <SiteNav />
       </div>

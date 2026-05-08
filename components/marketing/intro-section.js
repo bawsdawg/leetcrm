@@ -1,10 +1,16 @@
+import { shellPaddingX } from "@/config/shell";
+import { cn } from "@/lib/utils";
+
 /** Intro band — DESIGN Body Large lead + Body supporting text */
 
 export function IntroSection() {
   return (
     <section
       aria-labelledby="intro-heading"
-      className="border-y border-[rgba(214,235,253,0.09)] px-6 py-20 md:py-28"
+      className={cn(
+        "border-y border-[rgba(214,235,253,0.09)] py-20 md:py-28",
+        shellPaddingX,
+      )}
       style={{
         boxShadow:
           "inset 0 1px 0 0 rgba(176, 199, 217, 0.045), inset 0 -1px 0 0 rgba(176, 199, 217, 0.045)",
@@ -28,9 +34,10 @@ export function IntroSection() {
             hierarchy is unmistakable, and accents stay icy and precise—never noisy.
           </p>
           <p className="leading-relaxed text-[#a1a4a5] md:max-w-prose">
-            Drop in your logo, plug your auth provider, wire your database layer. The
-            structure is already shaped like a grown-up product—route groups for
-            marketing, onboarding, and the authenticated app—with room to evolve.
+            Searchmind teammates sign in with Google accounts on the{" "}
+            <span className="text-[#f0f0f0]">@searchmind.dk</span> domain today. The same
+            user record can later represent external collaborators with a reduced access
+            tier—swap providers or add invites without changing the model.
           </p>
         </div>
       </div>

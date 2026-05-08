@@ -1,7 +1,9 @@
 "use client";
 
-/** Root client boundary — analytics, toast, SessionProvider, TanStack Query, etc. */
+import { SessionProvider } from "next-auth/react";
+
+/** Root client boundary — OAuth session, analytics, toast, etc. */
 
 export function AppProviders({ children }) {
-  return children;
+  return <SessionProvider>{children}</SessionProvider>;
 }

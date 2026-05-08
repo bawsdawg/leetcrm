@@ -1,11 +1,14 @@
+import { shellPaddingX } from "@/config/shell";
+import { cn } from "@/lib/utils";
+
 /** Three-column feature grid — frosted cards (DESIGN §4) */
 
 const FEATURES = [
   {
     accent: "bg-[#3b9eff]",
-    title: "Composable structure",
+    title: "Google workspace SSO",
     description:
-      "Marketing, auth, and app shells are split into route groups—copy, trim, or extend without rewriting the tree.",
+      "Internal users authenticate with 1337-crm’s Google integration. Sessions are JWT-based; user profiles sync to MongoDB on every sign-in.",
   },
   {
     accent: "bg-[#11ff99]",
@@ -25,7 +28,7 @@ export function FeaturesSection() {
   return (
     <section
       aria-labelledby="features-heading"
-      className="px-6 py-20 sm:py-24 md:py-28"
+      className={cn("py-20 sm:py-24 md:py-28", shellPaddingX)}
     >
       <div className="mx-auto flex max-w-6xl flex-col gap-14">
         <div className="max-w-3xl">

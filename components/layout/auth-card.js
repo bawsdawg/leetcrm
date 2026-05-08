@@ -3,11 +3,11 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Focused centered card chrome for login / sign-up flows.
+ * Focused centered card chrome for sign-in flows.
  */
 export function AuthCard({ title, subtitle, children, className }) {
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-8 px-6">
+    <div className="mx-auto flex w-full max-w-md flex-col gap-8">
       <header>
         <h1 data-heading="compact" className="text-[#f0f0f0]">
           {title}

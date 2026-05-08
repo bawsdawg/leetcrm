@@ -6,7 +6,7 @@ import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { site } from "@/config/site";
 
 export const metadata = {
-  title: `${site.name} · Ship products that feel inevitable`,
+  title: `${site.branding}`,
   description: site.description,
 };
 

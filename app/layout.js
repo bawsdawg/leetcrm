@@ -2,6 +2,7 @@ import { Fraunces, Inter } from "next/font/google";
 
 import { SiteHeader } from "@/components/layout/site-header";
 import { AppProviders } from "@/components/providers/app-providers";
+import { site } from "@/config/site";
 
 import "./globals.css";
 
@@ -22,8 +23,8 @@ const displaySerif = Fraunces({
 });
 
 export const metadata = {
-  title: "Design system",
-  description: "Resend-inspired design system",
+  title: "1337-crm by Searchmind",
+  description: site.description,
 };
 
 export default function RootLayout({ children }) {
