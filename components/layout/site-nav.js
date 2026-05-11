@@ -26,7 +26,7 @@ function NavLink({ href, label }) {
     <Link
       href={href}
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full border px-2.5 py-1.5 text-xs transition md:text-sm",
+        "nav-tracking inline-flex shrink-0 items-center justify-center rounded-full border px-2.5 py-1.5 text-xs transition md:text-sm",
         active
           ? "border-border bg-surface-active text-fg"
           : "border-transparent text-fg-muted hover:border-border-hover-soft hover:bg-surface-muted hover:text-fg",
@@ -46,7 +46,7 @@ function DrawerNavLink({ href, label, onNavigate }) {
     <Link
       href={href}
       className={cn(
-        "-mx-1 flex rounded-xl border px-4 py-3.5 text-base font-medium transition",
+        "-mx-1 flex rounded-xl border px-4 py-3.5 text-base font-medium transition nav-tracking",
         active
           ? "border-border bg-surface-active text-fg"
           : "border-transparent text-fg-muted hover:border-border-soft hover:bg-surface-muted hover:text-fg",
@@ -154,7 +154,7 @@ export function SiteNav() {
             <NavDivider />
             <button
               type="button"
-              className="inline-flex shrink-0 items-center justify-center rounded-full border border-transparent px-3 py-1.5 text-sm text-fg-muted hover:bg-surface-muted hover:text-fg"
+              className="nav-tracking inline-flex shrink-0 items-center justify-center rounded-full border border-transparent px-3 py-1.5 text-sm text-fg-muted hover:bg-surface-muted hover:text-fg"
               onClick={() => signOut({ callbackUrl: routes.home })}
             >
               Sign out

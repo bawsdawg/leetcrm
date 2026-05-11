@@ -1,5 +1,8 @@
 import { auth } from "@/auth";
+import { DensityPreference } from "@/components/settings/density-preference";
+import { shellMainStudio } from "@/config/shell";
 import { ACCESS_TIERS } from "@/lib/constants/access-tiers";
+import { cn } from "@/lib/utils";
 
 export const metadata = { title: "Settings · 1337-crm by Searchmind" };
 
@@ -16,22 +19,24 @@ export default async function SettingsPage() {
       : `${ACCESS_TIERS.INTERNAL_FULL} — Searchmind workspace`;
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-6 md:p-10">
+    <main className={cn(shellMainStudio)}>
       <div className="flex flex-col gap-2">
         <h1 className="text-fg">Settings</h1>
         <p className="max-w-prose font-sans text-sm text-fg-muted">
-          Account details come from your session; deeper controls (team, billing) can
-          stack on this page.
+          Account details come from your session; deeper controls (team, billing) can stack on
+          this page.
         </p>
       </div>
+
+      <DensityPreference />
 
       <ul className="max-w-lg list-inside list-disc space-y-2 font-sans text-sm text-fg-muted">
         <li>
           <span className="text-fg-soft">Access model:</span> {tier}
         </li>
         <li>
-          Profile fields are mirrored from Google on each sign-in and stored in MongoDB
-          for reporting and future roles.
+          Profile fields are mirrored from Google on each sign-in and stored in MongoDB for
+          reporting and future roles.
         </li>
       </ul>
     </main>

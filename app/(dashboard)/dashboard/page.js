@@ -1,5 +1,7 @@
 import { auth } from "@/auth";
+import { shellMainStudio } from "@/config/shell";
 import { ACCESS_TIERS } from "@/lib/constants/access-tiers";
+import { cn } from "@/lib/utils";
 
 export const metadata = { title: "Dashboard · 1337-crm by Searchmind" };
 
@@ -22,7 +24,7 @@ export default async function DashboardPage() {
       : ACCESS_TIERS.INTERNAL_FULL;
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-6 md:p-10">
+    <main className={cn(shellMainStudio)}>
       <div className="flex flex-col gap-2">
         <h1 className="text-fg">Dashboard</h1>
         <p className="max-w-prose font-sans text-sm text-fg-muted">
@@ -51,7 +53,7 @@ export default async function DashboardPage() {
             <dt className="text-[11px] font-medium uppercase tracking-[0.06em] text-fg-soft">
               User ID
             </dt>
-            <dd className="mt-1 break-all text-[11px] text-fg-quiet">
+            <dd className="mt-1 break-all font-mono text-[11px] tabular-nums tracking-tight text-fg-quiet">
               {typeof session?.user?.id === "string" ? session.user.id : "—"}
             </dd>
           </div>

@@ -1,4 +1,4 @@
-import { Fraunces, Inter } from "next/font/google";
+import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 
 import { SiteHeader } from "@/components/layout/site-header";
 import { AppProviders } from "@/components/providers/app-providers";
@@ -11,6 +11,12 @@ const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-inter",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-jetbrains",
 });
 
 /**
@@ -32,8 +38,9 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${displaySerif.variable}`}
+      className={`${inter.variable} ${displaySerif.variable} ${jetbrainsMono.variable}`}
       data-theme="dark"
+      data-density="compact"
       suppressHydrationWarning
     >
       <body

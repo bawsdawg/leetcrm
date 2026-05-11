@@ -1,8 +1,8 @@
 /**
- * Runs before interactive paint so the first paint matches localStorage (avoids flash).
- * Keep `THEME_STORAGE_KEY` in sync with `lib/theme/constants.js`.
+ * Runs before interactive paint — theme + density match localStorage (no flash).
+ * Keys must match `lib/theme/constants.js`.
  */
 
 export function themeInitScriptInnerHtml() {
-  return `(function(){try{var k='apex-theme',t=localStorage.getItem(k);if(t==='light')document.documentElement.setAttribute('data-theme','light');else document.documentElement.setAttribute('data-theme','dark')}catch(_){document.documentElement.setAttribute('data-theme','dark')}})();`;
+  return `(function(){try{var kt='apex-theme',tt=localStorage.getItem(kt);if(tt==='light')document.documentElement.setAttribute('data-theme','light');else document.documentElement.setAttribute('data-theme','dark');var kd='apex-density',d=localStorage.getItem(kd);if(d==='spacious')document.documentElement.setAttribute('data-density','spacious');else document.documentElement.setAttribute('data-density','compact')}catch(_){document.documentElement.setAttribute('data-theme','dark');document.documentElement.setAttribute('data-density','compact')}})();`;
 }

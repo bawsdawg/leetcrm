@@ -1,11 +1,5 @@
 # Design System Inspired by Resend
 
-This document defines **Resend-inspired visual DNA as primary** — void canvas, icy frost borders, editorial type, restrained accents, and Apex’s token-first dark/light inversion (see §2).
-
-**Searchmind Agency OS** (`DESIGN-SEARCHMINDOS`) is documented here as a **complementary layer** for dense internal tooling (agency CRM / operations): near-white canvases OKLCH-tuned palettes, compact density modes, Danish UI, departmental hues, semantic chips, tabular mono, inline charts — see **§10**. When both apply, inherit Resend spacing and frost language globally; overlay Agency OS density, data, and taxonomy rules only inside product surfaces where that product requires them.
-
----
-
 ## 1. Visual Theme & Atmosphere
 
 Resend's website is a dark, cinematic canvas that treats email infrastructure like a luxury product. The entire page is draped in pure black (`#000000`) with text that glows in near-white (`#f0f0f0`), creating a theater-like experience where content performs on a void stage. This isn't the typical developer-tool darkness — it's the controlled darkness of a photography gallery, where every element is lit with intention and nothing competes for attention.
@@ -356,81 +350,3 @@ Do **not** hardcode hex or raw `rgba` in JSX for surfaces, text, or borders. Map
 5. Multi-color accents at low opacity (12–42%) for backgrounds, full opacity for text
 6. Pill shape (9999px) for CTAs and badges, standard radius (4px–16px) for containers
 7. No shadows — use frost borders for depth against the void
-
----
-
-## 10. Searchmind Agency OS — complementary layer
-
-Use this section when building **internal CRM / operational** surfaces Searchmind ships inside the Apex shell: dense tables, departmental reporting, KPIs, Danish workflows. It **does not replace** §1–§9; it defines **density, taxonomy, localization, OKLCH discipline, chip vocabulary, shell layout**, and **data typography** atop the same ethos.
-
-### 10.1 Role & stance
-
-Searchmind Agency OS is intentionally a **working tool**, not a marketing hero: calm, dense, editorial. Neutral canvas (prototype default was near-white — different from Apex dark-default; when shipping inside Apex, derive surfaces from **`bg-canvas` / `text-fg`** and treat Agency OS palettes as additive tokens for dashboards only). Chrome is minimal: hairline-bordered sidebar, **52px topbar**, breadcrumb over page title patterns. **Density over decoration:** default `compact`, optional `spacious`.
-
-### 10.2 Domain & localization
-
-- **Danish-first UI copy** (`da-DK`) for operational screens where specified.
-- **Numbers:** `Intl.NumberFormat('da-DK')`; **dates:** Danish long abbreviations where applicable (e.g. `18 apr 2026`).
-- **Currency suffix** (`72 000 kr`), **compact currency** (`72K kr` / `1.1M kr`), hours suffixed **`t`**, percentages **without space** (`31%`).
-- **Industry terms unchanged:** SEO, PPC, GEO, etc.
-- Separate **conceptual** labels exist for Danish health/status (e.g. health: Sund / Advarsel / Kritisk) — preserve meaning when translating.
-
-### 10.3 Color discipline (OKLCH)
-
-Agency OS authors colors in **OKLCH** so chroma and lightness bands align perceptually (**~0.14–0.20 chroma**, **54–70% lightness** for accent family cohesion).
-
-- **One brand hue** (**violet hue ~272** in prototype): **`--brand`**, **`--brand-hover`**, **`--brand-soft`**, **`--brand-border`**, **`--brand-fg`**. Reserve for primary CTA, active nav spine, avatar mark, tweakable hue from a settings panel concept.
-- **Neutrals:** `--bg`, `--bg-elev`, `--bg-sunken`, `--bg-hover`, `--bg-active`, `--border`, `--border-strong`, `--border-subtle` — cool–warm hybrid around hue **260** with ultra-low chroma.
-- **Text roles:** three tiers only (`--text`, `--text-muted`, `--text-faint`) — no fourth “muted-muted”; clarify hierarchy with **weight** or **size** instead.
-
-**Semantics (triplets):** each of **OK / Warn / Bad** exposes line + **`--*-soft`** (chip fill) + **`--*-border`** (hairline) — compose chips together, never orphan soft fills.
-
-### 10.4 Department hues
-
-Seven departmental hues locked to **`oklch(60% 0.16 H)`** (equiluminant). Examples: `--dep-seo` (255), `--dep-ppc` (320), `--dep-social` (30), `--dep-email` (180), `--dep-geo` (135), `--dep-creative` (355), `--dep-content` (85).
-
-**Use only** for departmental data (dots, dept chips mixed at ~10%, allocation bars). **Do not** use dept hues interchangeably with semantic **ok/warn/bad**.
-
-### 10.5 Typography (dense app)
-
-Prototype stack: **Geist** + **Geist Mono**. This repo ships **Inter** + **Fraunces** for marketing serif — preserve Resend editorial rules for marketing; for Agency dashboards, prefer **tabular numerals** (`font-variant-numeric: tabular-nums`), **mono only** for KPIs, IDs, timestamps, ⌘ hints — **never mono for prose**.
-
-Representative sizing from the Agency OS prototype: **page title ~22px / 600**, **KPI value ~22px**, **card title ~16px / 600**, **body ~13.5px**, **cells ~12.5–13px**, **section label ~10.5px / uppercase**. Map into your theme scale pragmatically — **density** matters more than exact px.
-
-### 10.6 Shell & spacing
-
-Skeleton: fixed **sidebar** (e.g. **220px expanded / 56px** icon collapsed) + **`flex:1`** main column (**52px sticky topbar** + scrolling `<main>`). Only main scrolls.
-
-**Density tokens:** `[data-density="compact"]` vs `[data-density="spacious"]` adjusting `--pad-row`, `--pad-card`, `--gap`, `--h-row` (e.g. compact row **36px** vs spacious **48px`). Use shared variables so toggling density reflows without per-component forks.
-
-Whitespace is **structural**: cards **~12px** apart, KPIs tight, elevation via **1px borders** before shadows.
-
-### 10.7 Elevation & shape (CRM)
-
-Elevation levels (**`--sh-sm`** … **`--sh-pop`**) reserved for overlays, dropdowns, modals, hover cards — not default KPI cards.**Radius ladder:** ~~4–6~~ kbd/sm controls, **12px default cards**, **16–20px panels**, **`999px` pill** chips.
-
-### 10.8 Components (summary)
-
-- **Buttons:** one **`.btn-primary`** (brand) maximum per viewport; neutral **`.btn`**, airy **`.btn-ghost`**, **`btn-icon`** squares.
-- **Chips (~22px):** **`.chip-ok` / `.chip-warn` / `.chip-bad` / `.chip-brand`** from semantic triplets.
-- **`HealthChip` vs `StatusPill`** — **health** (`ok/warn/bad`) and **operational status** (`active/paused/inactive`) are **different axes**; render separately when both apply.
-- **Cards:** 1px border, subtle lift `--sh-sm` active states only — default cards border-led.
-- **Inline charts:** `Sparkline` (32px), `UtilBar` (6px, threshold colors), `AllocationBar` (10px) — prefer primitives over heavyweight chart libs for embedded metrics.
-- **Focus:** prototype uses **global `focus-visible`** brand ring (**2px**, **2px offset**); align with Apex **`outline-accent`** where products merge.
-
-### 10.9 Agency OS Do / Don't (additive)
-
-| Do | Don't |
-|----|--------|
-| Use semantic triplets (`-soft`, `-border`) for chips | Mix soft fills with mismatched borders |
-| Use `.mono.num` / tabular alignment for KPI columns | Stretch mono to paragraph copy |
-| Use dept tokens **only** for departmental concepts | Dept hue for generic positives/negatives |
-| Keep **one primary brand action** when using `--brand` | Splash `--brand` as decorative fill |
-| Test **density toggle** & **both themes** for app surfaces | One-off spaced tables outside tokens |
-| Author new hues in OKLCH within shared chroma/lightness bands | Ad-hoc hex that breaks perceptual neutrality |
-
----
-
-### Source lineage
-
-Full historical copies (optional reference): **`DESIGN-RESEND.md`**, **`DESIGN-SEARCHMINDOS.md`**. **`DESIGN.md`** is the consolidated source of truth: Resend backbone (§1–§9), Searchmind Agency OS complement (§10).

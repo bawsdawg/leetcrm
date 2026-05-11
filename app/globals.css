@@ -1,11 +1,10 @@
 @import "tailwindcss";
 
 /**
- * Apex semantic theme — DESIGN.md palettes expressed as inverted pairs.
- * Dark (default): void black canvas, near-white typography, icy frost borders.
- * Light: inverted canvas/neutrals/frost complements; accents use contrast-safe pairs where needed.
- * Use Tailwind semantic colors (`bg-canvas`, `text-fg`, `border-border`, …); avoid raw `#`/`rgb` in JSX.
+ * DESIGN.md — Apex tokens (§2 primary / §10 density & shell metrics).
+ * Resend canvas + frost; inverted light mode; semantic Tailwind utilities.
  */
+
 
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -45,10 +44,25 @@
   --color-skeleton: var(--ds-skeleton);
 
   --color-google-banner: var(--ds-google-banner-bg);
+
+  --color-accent-gold: var(--ds-accent-gold);
+  --color-danger: var(--ds-danger);
+
+  /** JetBrains Mono (layout) — data / code (DESIGN.md §3 / §10.5 tabular mono) */
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 }
+
 
 :root {
   color-scheme: dark;
+
+  /** DESIGN §10.6 — dashboard `<main>` rhythm (overridden by `[data-density="spacious"]`) */
+  --ds-studio-pad-main: 1.5rem;
+  --ds-studio-pad-main-md: 2.5rem;
+  --ds-studio-stack: 1.5rem;
+
+  /** DESIGN §10.6 — nominal sidebar rail width */
+  --ds-sidebar-w: 220px;
 
   --ds-canvas: #000000;
   --ds-fg: #f0f0f0;
@@ -94,6 +108,10 @@
   --ds-accent-blue: #3b9eff;
   --ds-accent-green: #11ff99;
   --ds-accent-orange: #ffa057;
+
+  /** DESIGN §2 — Yellow / red semantic (warnings, destructive) */
+  --ds-accent-gold: #ffc53d;
+  --ds-danger: #ff2047;
 
   --ds-skeleton: rgb(214 235 253 / 0.07);
 
@@ -150,7 +168,17 @@
 
   --ds-skeleton: rgb(41 20 2 / 0.08);
 
+  --ds-accent-gold: #b88700;
+  --ds-danger: #cc1030;
+
   --ds-google-banner-bg: rgb(0 0 0 / 0.03);
+}
+
+/** DESIGN §10.6 — spacious density increases dashboard `<main>` padding / stack */
+html[data-density="spacious"] {
+  --ds-studio-pad-main: 2rem;
+  --ds-studio-pad-main-md: 3rem;
+  --ds-studio-stack: 2rem;
 }
 
 /*
@@ -180,6 +208,20 @@
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
+  }
+
+  /** Design display serif — ligatures / kerning (Fraunces as Domaine stand-in — DESIGN.md §3). */
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-feature-settings:
+      "liga" 1,
+      "kern" 1,
+      "dlig" 1;
   }
 
   h1 {
@@ -257,6 +299,15 @@
     font-weight: 500;
     letter-spacing: normal;
   }
+
+  /** Commit Mono stand-in — tabular / code (DESIGN.md §3 / §10.5) */
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 @layer utilities {
@@ -266,6 +317,10 @@
    */
   .text-display-hero {
     font-family: var(--font-serif);
+    font-feature-settings:
+      "liga" 1,
+      "kern" 1,
+      "dlig" 1;
     font-size: var(--type-display-hero);
     line-height: 1;
     font-weight: 400;
@@ -296,5 +351,10 @@
 
   .bg-cta-panel {
     background-image: var(--ds-cta-bg);
+  }
+
+  /** DESIGN.md §3 Nav Link — ABC Favorit +0.35px tracking (apply to `<Link>` in main nav) */
+  .nav-tracking {
+    letter-spacing: 0.35px;
   }
 }
