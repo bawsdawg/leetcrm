@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { PulseIconChevronDown } from "@/components/pulse/pulse-icons";
 import { PulseSegmentedControl } from "@/components/pulse/pulse-segmented-control";
 import { routes } from "@/config/routes";
+import { emitTimerSessionChanged } from "@/lib/crm/timer-session-events";
 import { CLIENTS, TASKS } from "@/lib/crm/static-data";
 import { cn } from "@/lib/utils";
 
@@ -41,10 +42,12 @@ export function TimeTrackRunner() {
       if (!res.ok) {
         setActive(null);
         setBanner(typeof data?.error === "string" ? data.error : "Kunne ikke hente timer");
+        emitTimerSessionChanged();
         return;
       }
       setBanner(null);
       setActive(data.active ?? null);
+      emitTimerSessionChanged();
     } catch {
       setBanner("Netværksfejl");
     }
@@ -92,6 +95,7 @@ export function TimeTrackRunner() {
         return;
       }
       setActive(data.active ?? null);
+      emitTimerSessionChanged();
     } finally {
       setBusy(false);
     }
@@ -112,6 +116,7 @@ export function TimeTrackRunner() {
         return;
       }
       setActive(null);
+      emitTimerSessionChanged();
       setBanner(`Gemt · ${data.durationMinutes ?? "?"} min`);
       setTimeout(() => setBanner(null), 4500);
     } finally {

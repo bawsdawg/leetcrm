@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { IconClock } from "@/components/crm/icons";
+import { TIMER_SESSION_CHANGED_EVENT } from "@/lib/crm/timer-session-events";
 import { cn } from "@/lib/utils";
 
 import { useTimerModal } from "./timer-modal-context";
@@ -30,6 +31,7 @@ export function CrmTimerChip() {
   );
   const [tick, setTick] = useState(0);
   const [loading, setLoading] = useState(true);
+  const prevModalOpen = useRef(timerModalOpen);
 
   const refresh = useCallback(async () => {
     try {
@@ -51,19 +53,48 @@ export function CrmTimerChip() {
   }, [refresh]);
 
   useEffect(() => {
+    const onChanged = () => {
+      void refresh();
+    };
+    window.addEventListener(TIMER_SESSION_CHANGED_EVENT, onChanged);
+    return () => window.removeEventListener(TIMER_SESSION_CHANGED_EVENT, onChanged);
+  }, [refresh]);
+
+  useEffect(() => {
+    if (prevModalOpen.current && !timerModalOpen) {
+      queueMicrotask(() => {
+        void refresh();
+      });
+    }
+    prevModalOpen.current = timerModalOpen;
+  }, [timerModalOpen, refresh]);
+
+  useEffect(() => {
     const id = setInterval(() => setTick((x) => x + 1), 1000);
     return () => clearInterval(id);
   }, []);
 
   const active = payload?.active ?? null;
   const startedAt = active && typeof active.startedAt === "string" ? active.startedAt : null;
+  const running = Boolean(active && startedAt);
+
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => {
+      void refresh();
+    }, 60_000);
+    return () => clearInterval(id);
+  }, [running, refresh]);
+
   const secs = elapsedSeconds(startedAt);
   void tick;
-  const running = Boolean(active && startedAt);
 
   if (loading && !payload) {
     return (
-      <span className="hidden h-8 w-[108px] animate-pulse rounded-md bg-skeleton sm:inline-block" aria-hidden />
+      <span
+        className="inline-block h-8 w-[72px] shrink-0 animate-pulse rounded-md bg-skeleton sm:w-[108px]"
+        aria-hidden
+      />
     );
   }
 
@@ -74,23 +105,25 @@ export function CrmTimerChip() {
       aria-haspopup="dialog"
       aria-expanded={timerModalOpen}
       className={cn(
-        "hidden h-8 max-w-[240px] shrink-0 items-center gap-2 rounded-md border px-2 font-mono text-[11px] tabular-nums sm:inline-flex",
+        "inline-flex h-8 min-w-0 max-w-[min(140px,38vw)] shrink-0 items-center gap-1.5 rounded-md border px-1.5 font-mono text-[11px] tabular-nums sm:max-w-[240px] sm:gap-2 sm:px-2",
         running
           ? "border-agency-brand-border bg-agency-brand-soft text-agency-brand"
           : "border-border bg-surface-muted text-fg-muted hover:border-agency-brand-border hover:bg-agency-brand-soft/60 hover:text-agency-brand",
       )}
-      title={running ? "Timer kører · åbn panelet" : "Åbn timer"}
+      title={running ? "Timer kører i baggrunden · åbn panelet" : "Åbn timer"}
     >
       <IconClock size={14} className="shrink-0 opacity-90" />
       {running ? (
         <>
-          <span className="min-w-[52px] truncate text-left font-semibold">{formatHms(secs)}</span>
-          <span className="max-w-[100px] truncate text-[10px] font-normal opacity-90">
+          <span className="min-w-[48px] shrink-0 truncate text-left font-semibold sm:min-w-[52px]">
+            {formatHms(secs)}
+          </span>
+          <span className="min-w-0 flex-1 truncate text-[10px] font-normal opacity-90 sm:max-w-[100px]">
             {typeof active.clientName === "string" ? active.clientName : "—"}
           </span>
         </>
       ) : (
-        <span className="text-fg-soft">Timer</span>
+        <span className="truncate text-fg-soft">Timer</span>
       )}
     </button>
   );
