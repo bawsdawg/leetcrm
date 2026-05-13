@@ -159,6 +159,7 @@ const ICONS = {
   tasks: IconCheck,
   templates: IconSparkle,
   time: IconClock,
+  timer: IconClock,
   workload: IconChart,
   nps: IconSparkle,
   kb: IconDoc,

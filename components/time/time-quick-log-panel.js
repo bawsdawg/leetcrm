@@ -1,3 +1,6 @@
+"use client";
+
+import { OpenTimerButton } from "@/components/time/open-timer-button";
 import { cn } from "@/lib/utils";
 
 export function TimeQuickLogPanel() {
@@ -14,15 +17,12 @@ export function TimeQuickLogPanel() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            className="inline-flex h-8 items-center gap-2 rounded-md border border-agency-brand-border bg-agency-brand px-3.5 font-sans text-[12px] font-semibold text-white transition-colors hover:bg-agency-brand/90"
-          >
+          <OpenTimerButton className="inline-flex h-8 items-center gap-2 rounded-md border border-agency-brand-border bg-agency-brand px-3.5 font-sans text-[12px] font-semibold text-white transition-colors hover:bg-agency-brand/90">
             <span className="relative flex size-2 rounded-full bg-white/90">
               <span className="absolute inset-0 animate-ping rounded-full bg-white/40" />
             </span>
             Start timer
-          </button>
+          </OpenTimerButton>
           <button
             type="button"
             className="inline-flex h-8 items-center rounded-md border border-border bg-surface-muted px-3 font-sans text-[12px] font-medium text-fg-muted transition-colors hover:border-agency-brand-border hover:bg-agency-brand-soft hover:text-agency-brand"

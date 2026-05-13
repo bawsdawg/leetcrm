@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 
+import { CrmTimerChip } from "@/components/crm/crm-timer-chip";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { routes } from "@/config/routes";
 import { shellHeaderInner } from "@/config/shell";
@@ -44,6 +45,7 @@ export function CrmTopbar({ title, onOpenNav, className }) {
         </div>
 
         <div className="flex shrink-0 items-center gap-2 md:gap-3">
+          <CrmTimerChip />
           <ThemeToggle />
           {status === "loading" ? (
             <span className="h-8 w-24 animate-pulse rounded-md bg-skeleton" aria-hidden />

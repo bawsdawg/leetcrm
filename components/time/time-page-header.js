@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { useTimerModal } from "@/components/crm/timer-modal-context";
 import { IconClock } from "@/components/crm/icons";
 import { PulseIconDownload } from "@/components/pulse/pulse-icons";
 import { PulseSegmentedControl } from "@/components/pulse/pulse-segmented-control";
@@ -10,6 +11,7 @@ import { TEAM } from "@/lib/crm/static-data";
 
 export function TimePageHeader() {
   const [period, setPeriod] = useState("week");
+  const { openTimer, open: timerModalOpen } = useTimerModal();
   const meName = TEAM.find((m) => m.id === TASK_DEMO_USER_ID)?.name ?? "Medarbejder";
 
   return (
@@ -32,6 +34,15 @@ export function TimePageHeader() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={openTimer}
+            aria-haspopup="dialog"
+            aria-expanded={timerModalOpen}
+            className="inline-flex h-[26px] items-center rounded-md border border-agency-brand-border bg-agency-brand px-3 font-sans text-[11px] font-semibold text-white transition-colors hover:bg-agency-brand/90"
+          >
+            Timer
+          </button>
           <PulseSegmentedControl
             size="sm"
             active={period}

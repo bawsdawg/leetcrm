@@ -8,8 +8,16 @@ import { CLIENTS } from "@/lib/crm/static-data";
 import { cn } from "@/lib/utils";
 
 import { CrmNavIcon, IconMenu, IconMenuL, IconSettings } from "./icons";
+import { useTimerModal } from "./timer-modal-context";
 
-function isNavActive(pathname, href) {
+function isNavActive(pathname, href, itemId, timerModalOpen) {
+  if (itemId === "timer") {
+    return Boolean(timerModalOpen);
+  }
+  if (itemId === "time") {
+    return pathname === routes.time || pathname.startsWith(`${routes.time}/`);
+  }
+  if (!href) return false;
   if (pathname === href) return true;
   if (href !== routes.pulse && pathname.startsWith(`${href}/`)) return true;
   return false;
@@ -30,6 +38,7 @@ export function CrmSidebar({
   className,
   onNavigate,
 }) {
+  const { open: timerModalOpen, openTimer } = useTimerModal();
   const clientCount = CLIENTS.length;
   const w = collapsed ? 56 : 220;
 
@@ -105,29 +114,53 @@ export function CrmSidebar({
               </div>
             ) : null}
             {CRM_NAV_ITEMS.filter((i) => i.group === group.id).map((item) => {
-              const active = isNavActive(pathname, item.href);
+              const href = item.href ?? "";
+              const active = isNavActive(pathname, href, item.id, timerModalOpen);
+              const itemClass = cn(
+                "mb-0.5 flex h-[30px] items-center gap-2.5 rounded-md border font-sans text-[13px] transition-colors",
+                collapsed ? "justify-center px-0" : "px-2.5",
+                active
+                  ? "border-border bg-surface-active font-medium text-fg shadow-inset-card"
+                  : "border-transparent font-normal text-fg-muted hover:bg-surface-muted hover:text-fg",
+              );
+              const iconWrap = (
+                <span
+                  className={cn(
+                    "inline-flex shrink-0",
+                    active ? "text-accent" : "text-fg-quiet",
+                  )}
+                >
+                  <CrmNavIcon navId={item.id} size={15} />
+                </span>
+              );
+              if (item.openTimerModal) {
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    title={collapsed ? item.label : undefined}
+                    aria-haspopup="dialog"
+                    aria-expanded={timerModalOpen}
+                    className={itemClass}
+                    onClick={() => {
+                      openTimer();
+                      onNavigate?.();
+                    }}
+                  >
+                    {iconWrap}
+                    {!collapsed ? <span className="truncate">{item.label}</span> : null}
+                  </button>
+                );
+              }
               return (
                 <Link
                   key={item.id}
-                  href={item.href}
+                  href={/** @type {string} */ (item.href)}
                   onClick={onNavigate}
                   title={collapsed ? item.label : undefined}
-                  className={cn(
-                    "mb-0.5 flex h-[30px] items-center gap-2.5 rounded-md border font-sans text-[13px] transition-colors",
-                    collapsed ? "justify-center px-0" : "px-2.5",
-                    active
-                      ? "border-border bg-surface-active font-medium text-fg shadow-inset-card"
-                      : "border-transparent font-normal text-fg-muted hover:bg-surface-muted hover:text-fg",
-                  )}
+                  className={itemClass}
                 >
-                  <span
-                    className={cn(
-                      "inline-flex shrink-0",
-                      active ? "text-accent" : "text-fg-quiet",
-                    )}
-                  >
-                    <CrmNavIcon navId={item.id} size={15} />
-                  </span>
+                  {iconWrap}
                   {!collapsed ? <span className="truncate">{item.label}</span> : null}
                   {!collapsed && item.badge === "clients" ? (
                     <span className="ml-auto font-mono text-[11px] tabular-nums text-fg-quiet">

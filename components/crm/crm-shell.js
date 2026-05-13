@@ -7,7 +7,9 @@ import { usePathname } from "next/navigation";
 import { getWorkspaceTitle } from "@/lib/crm/workspace-title";
 
 import { CrmSidebar } from "./crm-sidebar";
+import { CrmTimerModal } from "./crm-timer-modal";
 import { CrmTopbar } from "./crm-topbar";
+import { TimerModalProvider } from "./timer-modal-context";
 
 const STORAGE_KEY = "crm-sidebar-collapsed";
 const SIDEBAR_STORE_EVENT = "crm-sidebar-collapsed-change";
@@ -69,38 +71,45 @@ export function CrmShell({ children }) {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 bg-canvas">
-      <CrmSidebar
-        className="hidden md:flex"
-        pathname={pathname}
-        collapsed={collapsed}
-        onToggleCollapsed={() => persistSidebarCollapsed(!collapsed)}
-      />
+    <TimerModalProvider>
+      <div className="flex min-h-0 flex-1 bg-canvas">
+        <CrmSidebar
+          className="hidden md:flex"
+          pathname={pathname}
+          collapsed={collapsed}
+          onToggleCollapsed={() => persistSidebarCollapsed(!collapsed)}
+        />
 
-      {mobileOpen ? (
-        <div className="fixed inset-0 z-[100] flex md:hidden" role="dialog" aria-modal aria-label="Workspace navigation">
-          <button
-            type="button"
-            className="absolute inset-0 bg-canvas/80 backdrop-blur-[2px]"
-            aria-label="Luk menu"
-            onClick={() => setMobileOpen(false)}
-          />
-          <div className="relative h-full w-[min(280px,88vw)] max-w-full border-r border-border bg-canvas shadow-xl">
-            <CrmSidebar
-              className="flex h-full w-full"
-              pathname={pathname}
-              collapsed={false}
-              onToggleCollapsed={() => setMobileOpen(false)}
-              onNavigate={() => setMobileOpen(false)}
+        {mobileOpen ? (
+          <div
+            className="fixed inset-0 z-[100] flex md:hidden"
+            role="dialog"
+            aria-modal
+            aria-label="Workspace navigation"
+          >
+            <button
+              type="button"
+              className="absolute inset-0 bg-canvas/80 backdrop-blur-[2px]"
+              aria-label="Luk menu"
+              onClick={() => setMobileOpen(false)}
             />
+            <div className="relative h-full w-[min(280px,88vw)] max-w-full border-r border-border bg-canvas shadow-xl">
+              <CrmSidebar
+                className="flex h-full w-full"
+                pathname={pathname}
+                collapsed={false}
+                onToggleCollapsed={() => setMobileOpen(false)}
+                onNavigate={() => setMobileOpen(false)}
+              />
+            </div>
           </div>
+        ) : null}
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <CrmTopbar title={title} onOpenNav={() => setMobileOpen(true)} />
+          <div className="min-h-0 flex-1 overflow-auto">{children}</div>
         </div>
-      ) : null}
-
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-        <CrmTopbar title={title} onOpenNav={() => setMobileOpen(true)} />
-        <div className="min-h-0 flex-1 overflow-auto">{children}</div>
       </div>
-    </div>
+      <CrmTimerModal />
+    </TimerModalProvider>
   );
 }
