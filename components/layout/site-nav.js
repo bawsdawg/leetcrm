@@ -148,7 +148,7 @@ export function SiteNav() {
           <>
             <NavDivider />
             <div className="flex flex-nowrap items-center gap-2 lg:gap-3">
-              <NavLink href={routes.dashboard} label="Dashboard" />
+              <NavLink href={routes.pulse} label="Agency OS" />
               <NavLink href={routes.settings} label="Settings" />
             </div>
             <NavDivider />
@@ -250,7 +250,7 @@ export function SiteNav() {
 
                 {isAuthed ? (
                   <>
-                    <DrawerNavLink href={routes.dashboard} label="Dashboard" onNavigate={close} />
+                    <DrawerNavLink href={routes.pulse} label="Agency OS" onNavigate={close} />
                     <DrawerNavLink href={routes.settings} label="Settings" onNavigate={close} />
                     <button
                       type="button"

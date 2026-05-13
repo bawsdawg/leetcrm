@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
+import { routes } from "@/config/routes";
+import { isWorkspacePath } from "@/config/workspace-routes";
 
 export default auth((request) => {
   const { pathname } = request.nextUrl;
@@ -8,22 +10,26 @@ export default auth((request) => {
 
   if (pathname.startsWith("/login")) {
     if (session) {
-      return NextResponse.redirect(new URL("/dashboard", request.nextUrl));
+      return NextResponse.redirect(new URL(routes.pulse, request.nextUrl));
     }
     return NextResponse.next();
   }
 
-  if (pathname.startsWith("/dashboard") || pathname.startsWith("/settings")) {
-    if (!session) {
-      const url = new URL("/login", request.nextUrl);
-      url.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(url);
-    }
+  if (!isWorkspacePath(pathname)) {
+    return NextResponse.next();
+  }
+
+  if (!session) {
+    const url = new URL("/login", request.nextUrl);
+    url.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.next();
 });
 
 export const config = {
-  matcher: ["/dashboard", "/dashboard/:path*", "/settings", "/settings/:path*", "/login"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+  ],
 };

@@ -1,6 +1,5 @@
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 
-import { SiteHeader } from "@/components/layout/site-header";
 import { AppProviders } from "@/components/providers/app-providers";
 import { themeInitScriptInnerHtml } from "@/components/theme/theme-init-script";
 import { site } from "@/config/site";
@@ -52,7 +51,6 @@ export default function RootLayout({ children }) {
           suppressHydrationWarning
         />
         <AppProviders>
-          <SiteHeader />
           <div className="flex min-h-0 flex-1 flex-col">{children}</div>
         </AppProviders>
       </body>

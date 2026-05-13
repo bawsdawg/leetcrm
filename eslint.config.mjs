@@ -10,6 +10,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    /** Legacy Claude CRM prototype (not part of Next app bundle) */
+    "claude/**",
   ]),
 ]);
 

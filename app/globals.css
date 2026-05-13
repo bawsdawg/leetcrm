@@ -48,6 +48,29 @@
   --color-accent-gold: var(--ds-accent-gold);
   --color-danger: var(--ds-danger);
 
+  /** DESIGN-SEARCHMINDOS.md — Agency OS OKLCH (additive; use on CRM / Pulse) */
+  --color-agency-brand: var(--agency-brand);
+  --color-agency-brand-soft: var(--agency-brand-soft);
+  --color-agency-brand-border: var(--agency-brand-border);
+  --color-agency-brand-hover: var(--agency-brand-hover);
+  --color-agency-brand-fg: var(--agency-brand-fg);
+  --color-agency-ok: var(--agency-ok);
+  --color-agency-ok-soft: var(--agency-ok-soft);
+  --color-agency-ok-border: var(--agency-ok-border);
+  --color-agency-warn: var(--agency-warn);
+  --color-agency-warn-soft: var(--agency-warn-soft);
+  --color-agency-warn-border: var(--agency-warn-border);
+  --color-agency-bad: var(--agency-bad);
+  --color-agency-bad-soft: var(--agency-bad-soft);
+  --color-agency-bad-border: var(--agency-bad-border);
+  --color-agency-dep-seo: var(--agency-dep-seo);
+  --color-agency-dep-ppc: var(--agency-dep-ppc);
+  --color-agency-dep-social: var(--agency-dep-social);
+  --color-agency-dep-email: var(--agency-dep-email);
+  --color-agency-dep-geo: var(--agency-dep-geo);
+  --color-agency-dep-creative: var(--agency-dep-creative);
+  --color-agency-dep-content: var(--agency-dep-content);
+
   /** JetBrains Mono (layout) — data / code (DESIGN.md §3 / §10.5 tabular mono) */
   --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 }
@@ -117,6 +140,38 @@
 
   /** Google notice panel */
   --ds-google-banner-bg: rgb(255 255 255 / 0.03);
+
+  /**
+   * DESIGN-SEARCHMINDOS.md — Agency OS palette on Apex dark canvas
+   * (lightness lifted vs. light-mode doc so hues read on void black)
+   */
+  --agency-brand: oklch(72% 0.19 272);
+  --agency-brand-hover: oklch(66% 0.21 272);
+  --agency-brand-soft: oklch(28% 0.07 272);
+  --agency-brand-border: oklch(52% 0.11 272);
+  --agency-brand-fg: oklch(98% 0.02 272);
+
+  --agency-ok: oklch(72% 0.14 155);
+  --agency-ok-soft: oklch(22% 0.045 155);
+  --agency-ok-border: oklch(48% 0.09 155);
+
+  --agency-warn: oklch(78% 0.15 75);
+  --agency-warn-soft: oklch(26% 0.045 75);
+  --agency-warn-border: oklch(52% 0.09 75);
+
+  --agency-bad: oklch(68% 0.19 25);
+  --agency-bad-soft: oklch(22% 0.055 25);
+  --agency-bad-border: oklch(46% 0.12 25);
+
+  --agency-dep-seo: oklch(62% 0.16 255);
+  --agency-dep-ppc: oklch(62% 0.16 320);
+  --agency-dep-social: oklch(62% 0.16 30);
+  --agency-dep-email: oklch(62% 0.16 180);
+  --agency-dep-geo: oklch(62% 0.16 135);
+  --agency-dep-creative: oklch(62% 0.16 355);
+  --agency-dep-content: oklch(62% 0.16 85);
+
+  --agency-shadow-raised: 0 1px 2px oklch(0% 0 0 / 0.35);
 }
 
 [data-theme="light"] {
@@ -172,6 +227,35 @@
   --ds-danger: #cc1030;
 
   --ds-google-banner-bg: rgb(0 0 0 / 0.03);
+
+  /** DESIGN-SEARCHMINDOS.md — light near-white canvas */
+  --agency-brand: oklch(54% 0.2 272);
+  --agency-brand-hover: oklch(48% 0.22 272);
+  --agency-brand-soft: oklch(95% 0.03 272);
+  --agency-brand-border: oklch(88% 0.06 272);
+  --agency-brand-fg: oklch(22% 0.06 272);
+
+  --agency-ok: oklch(58% 0.14 155);
+  --agency-ok-soft: oklch(94% 0.03 155);
+  --agency-ok-border: oklch(82% 0.06 155);
+
+  --agency-warn: oklch(70% 0.15 75);
+  --agency-warn-soft: oklch(96% 0.04 75);
+  --agency-warn-border: oklch(88% 0.07 75);
+
+  --agency-bad: oklch(58% 0.19 25);
+  --agency-bad-soft: oklch(94% 0.04 25);
+  --agency-bad-border: oklch(82% 0.08 25);
+
+  --agency-dep-seo: oklch(60% 0.16 255);
+  --agency-dep-ppc: oklch(60% 0.16 320);
+  --agency-dep-social: oklch(60% 0.16 30);
+  --agency-dep-email: oklch(60% 0.16 180);
+  --agency-dep-geo: oklch(60% 0.16 135);
+  --agency-dep-creative: oklch(60% 0.16 355);
+  --agency-dep-content: oklch(60% 0.16 85);
+
+  --agency-shadow-raised: 0 1px 2px oklch(0% 0 0 / 0.06);
 }
 
 /** DESIGN §10.6 — spacious density increases dashboard `<main>` padding / stack */
@@ -351,6 +435,10 @@ html[data-density="spacious"] {
 
   .bg-cta-panel {
     background-image: var(--ds-cta-bg);
+  }
+
+  .shadow-agency-raised {
+    box-shadow: var(--agency-shadow-raised);
   }
 
   /** DESIGN.md §3 Nav Link — ABC Favorit +0.35px tracking (apply to `<Link>` in main nav) */
