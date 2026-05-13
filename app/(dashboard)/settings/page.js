@@ -1,44 +1,17 @@
-import { auth } from "@/auth";
-import { DensityPreference } from "@/components/settings/density-preference";
 import { shellMainStudio } from "@/config/shell";
-import { ACCESS_TIERS } from "@/lib/constants/access-tiers";
 import { cn } from "@/lib/utils";
 
-export const metadata = { title: "Settings · 1337-crm by Searchmind" };
+export const metadata = { title: "Indstillinger · 1337-crm by Searchmind" };
 
-export default async function SettingsPage() {
-  const session = await auth();
-
-  const tierRaw =
-    typeof session?.user?.accessTier === "string"
-      ? session.user.accessTier
-      : ACCESS_TIERS.INTERNAL_FULL;
-  const tier =
-    tierRaw === ACCESS_TIERS.EXTERNAL_LIMITED
-      ? `${ACCESS_TIERS.EXTERNAL_LIMITED} — external collaborators (future invites)`
-      : `${ACCESS_TIERS.INTERNAL_FULL} — Searchmind workspace`;
-
+export default function SettingsPage() {
   return (
     <main className={cn(shellMainStudio)}>
-      <div className="flex flex-col gap-2">
-        <h1 className="text-fg">Settings</h1>
-        <p className="max-w-prose font-sans text-sm text-fg-muted">
-          Account details come from your session; deeper controls (team, billing) can stack on
-          this page.
+      <header className="border-b border-border/70 pb-6">
+        <h1 className="font-sans text-[22px] font-semibold tracking-tight text-fg">Indstillinger</h1>
+        <p className="mt-2 max-w-prose font-sans text-[13px] leading-snug text-fg-muted">
+          Denne side er tømt i demo-build — avancerede præferencer og account-flows kan tilføjes senere.
         </p>
-      </div>
-
-      <DensityPreference />
-
-      <ul className="max-w-lg list-inside list-disc space-y-2 font-sans text-sm text-fg-muted">
-        <li>
-          <span className="text-fg-soft">Access model:</span> {tier}
-        </li>
-        <li>
-          Profile fields are mirrored from Google on each sign-in and stored in MongoDB for
-          reporting and future roles.
-        </li>
-      </ul>
+      </header>
     </main>
   );
 }

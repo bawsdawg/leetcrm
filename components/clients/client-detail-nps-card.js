@@ -1,13 +1,7 @@
 import { PulseSparkline } from "@/components/pulse/pulse-sparkline";
 import { formatIsoDateDa } from "@/lib/crm/format-da";
+import { NPS_INTERVAL_DA } from "@/lib/crm/nps-intervals-da";
 import { cn } from "@/lib/utils";
-
-const NPS_INTERVAL_DA = {
-  monthly: "Månedlig måling",
-  quarterly: "Kvartalsvis måling",
-  biannual: "Halvårlig måling",
-  annual: "Årlig måling",
-};
 
 function scoreTone(score) {
   if (score >= 50) return "text-agency-ok";

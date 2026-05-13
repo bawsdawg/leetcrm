@@ -1,12 +1,64 @@
-import { WorkspacePlaceholder } from "@/components/crm/workspace-placeholder";
+import { KbContributorsCard } from "@/components/kb/kb-contributors-card";
+import { KbDirectory } from "@/components/kb/kb-directory";
+import { KbFeaturedRow } from "@/components/kb/kb-featured-row";
+import { KbPageHeader } from "@/components/kb/kb-page-header";
+import { KbQuickLinksCard } from "@/components/kb/kb-quick-links-card";
+import { KbStarterCard } from "@/components/kb/kb-starter-card";
+import { KbSummaryStrip } from "@/components/kb/kb-summary-strip";
+import { shellMainStudio } from "@/config/shell";
+import { KNOWLEDGE_CATEGORIES } from "@/lib/crm/knowledge-data";
+import { getFeaturedKnowledgeArticles, knowledgeAgencyStats } from "@/lib/crm/knowledge-utils";
+import { TEAM } from "@/lib/crm/static-data";
+import { cn } from "@/lib/utils";
 
 export const metadata = { title: "Knowledge base · 1337-crm by Searchmind" };
 
-export default function KnowledgeBasePage() {
+/** @param {{ searchParams?: Promise<Record<string, string | string[] | undefined>> | Record<string, string | string[] | undefined> }} props */
+export default async function KnowledgeBasePage({ searchParams }) {
+  const sp = await Promise.resolve(searchParams ?? {});
+  const catRaw = typeof sp.cat === "string" ? sp.cat : Array.isArray(sp.cat) ? sp.cat[0] : undefined;
+  const authorRaw = typeof sp.author === "string" ? sp.author : Array.isArray(sp.author) ? sp.author[0] : undefined;
+
+  const validCat = KNOWLEDGE_CATEGORIES.some((c) => c.id === catRaw) ? catRaw : undefined;
+  const validAuthor = TEAM.some((m) => m.id === authorRaw) ? authorRaw : undefined;
+
+  const featured = getFeaturedKnowledgeArticles(3);
+  const stats = knowledgeAgencyStats();
+
   return (
-    <WorkspacePlaceholder
-      title="Knowledge base"
-      description="Artikler lagres som `KnowledgeArticle` (slug, markdown, publikation) — søgning kommer senere."
-    />
+    <main className={cn(shellMainStudio)}>
+      <KbPageHeader />
+
+      <KbSummaryStrip
+        totalPublished={stats.totalPublished}
+        drafts={stats.drafts}
+        categoriesUsed={stats.categoriesUsed}
+        tagCount={stats.tagCount}
+        lastUpdatedIso={stats.lastUpdatedIso}
+      />
+
+      <KbFeaturedRow articles={featured} />
+
+      <div className="grid w-full min-w-0 gap-[length:var(--ds-studio-stack)] sm:grid-cols-2 xl:grid-cols-3 xl:items-start">
+        <KbStarterCard />
+        <KbQuickLinksCard />
+        <KbContributorsCard />
+      </div>
+
+      <KbDirectory
+        key={`${validCat ?? "all"}-${validAuthor ?? "all"}`}
+        initialCategoryId={validCat}
+        initialAuthorId={validAuthor}
+      />
+
+      <p className="font-sans text-[12px] text-fg-quiet">
+        Artikler i <code className="font-mono text-[11px] text-fg-muted">lib/crm/knowledge-data.js</code> matcher{" "}
+        <code className="font-mono text-[11px] text-fg-muted">KnowledgeArticle</code> (slug, title, summary,{" "}
+        <code className="font-mono text-[11px] text-fg-muted">bodyMd</code>, tags, audience{" "}
+        <code className="font-mono text-[11px] text-fg-quiet">internal|client|public</code>,{" "}
+        <code className="font-mono text-[11px] text-fg-quiet">published</code>
+        ). Erstat mock med Mongo + fuld‑tekst‑søg når backend er klar.
+      </p>
+    </main>
   );
 }
