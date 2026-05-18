@@ -6,6 +6,7 @@ const MAP_AGENCY = {
   review: "border-agency-warn-border bg-agency-warn-soft text-agency-warn",
   done: "border-agency-ok-border bg-agency-ok-soft text-agency-ok",
   blocked: "border-agency-bad-border bg-agency-bad-soft text-agency-bad",
+  cancelled: "border-fg-quiet/40 bg-surface-muted/50 text-fg-quiet",
 };
 
 const LABEL = {
@@ -14,11 +15,12 @@ const LABEL = {
   review: "Review",
   done: "Færdig",
   blocked: "Blokeret",
+  cancelled: "Afbrudt",
 };
 
 /**
  * @param {{
- *   status: 'todo' | 'doing' | 'review' | 'done' | 'blocked';
+ *   status: 'todo' | 'doing' | 'review' | 'done' | 'blocked' | 'cancelled';
  *   className?: string;
  * }} props
  */

@@ -1,0 +1,214 @@
+"use client";
+
+import { useCallback, useState } from "react";
+
+import { cn } from "@/lib/utils";
+
+/**
+ * @param {{
+ *   departments: Array<{ id: string; name: string }>;
+ *   team: Array<{ id: string; name: string }>;
+ *   clientsPicklist: Array<{ value: string; label: string }>;
+ *   submitting?: boolean;
+ *   error?: string | null;
+ *   onSubmit: (body: Record<string, unknown>) => void;
+ *   onCancel: () => void;
+ * }} props
+ */
+export function TasksCreateForm({ departments, team, clientsPicklist, submitting, error, onSubmit, onCancel }) {
+  const [title, setTitle] = useState("");
+  const [hint, setHint] = useState("");
+  const [clientSlug, setClientSlug] = useState(clientsPicklist[0]?.value ?? "");
+  const [departmentKey, setDepartmentKey] = useState("");
+  const [assigneeMemberKey, setAssigneeMemberKey] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [priority, setPriority] = useState("medium");
+  const [status, setStatus] = useState("todo");
+  const [key, setKey] = useState("");
+
+  const submit = useCallback(() => {
+    /** @type {Record<string, unknown>} */
+    const body = {
+      title: title.trim(),
+      hint,
+      clientSlug,
+      priority,
+      status,
+    };
+    if (dueDate.trim()) body.dueDate = dueDate.trim().slice(0, 10);
+    if (departmentKey && departmentKey !== "—") body.departmentKey = departmentKey;
+    if (assigneeMemberKey.trim()) body.assigneeMemberKey = assigneeMemberKey.trim();
+    if (key.trim()) body.key = key.trim();
+    onSubmit(body);
+  }, [title, hint, clientSlug, departmentKey, assigneeMemberKey, dueDate, priority, status, key, onSubmit]);
+
+  return (
+    <div
+      className="rounded-2xl border border-border bg-surface-card p-4 shadow-inset-card md:p-5"
+      role="region"
+      aria-label="Opret opgave"
+    >
+      <h2 className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-fg-soft">Ny opgave</h2>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 font-sans text-[12px] text-fg-muted">
+          <span>Titel *</span>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className={cn(
+              "rounded-md border border-border bg-surface-muted px-3 py-2 font-sans text-[13px] text-fg",
+              "outline-none focus-visible:ring-2 focus-visible:ring-agency-brand",
+            )}
+          />
+        </label>
+        <label className="flex flex-col gap-1 font-sans text-[12px] text-fg-muted">
+          <span>Kunde *</span>
+          <select
+            value={clientSlug}
+            onChange={(e) => setClientSlug(e.target.value)}
+            className={cn(
+              "rounded-md border border-border bg-surface-muted px-3 py-2 font-sans text-[13px] text-fg",
+              "outline-none focus-visible:ring-2 focus-visible:ring-agency-brand",
+            )}
+          >
+            {clientsPicklist.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 font-sans text-[12px] text-fg-muted sm:col-span-2">
+          <span>Hint / noter</span>
+          <input
+            value={hint}
+            onChange={(e) => setHint(e.target.value)}
+            className={cn(
+              "rounded-md border border-border bg-surface-muted px-3 py-2 font-sans text-[13px] text-fg",
+              "outline-none focus-visible:ring-2 focus-visible:ring-agency-brand",
+            )}
+          />
+        </label>
+        <label className="flex flex-col gap-1 font-sans text-[12px] text-fg-muted">
+          <span>Afdeling</span>
+          <select
+            value={departmentKey}
+            onChange={(e) => setDepartmentKey(e.target.value)}
+            className={cn(
+              "rounded-md border border-border bg-surface-muted px-3 py-2 font-sans text-[13px] text-fg",
+              "outline-none focus-visible:ring-2 focus-visible:ring-agency-brand",
+            )}
+          >
+            <option value="">—</option>
+            {departments.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 font-sans text-[12px] text-fg-muted">
+          <span>Ansvarlig</span>
+          <select
+            value={assigneeMemberKey}
+            onChange={(e) => setAssigneeMemberKey(e.target.value)}
+            className={cn(
+              "rounded-md border border-border bg-surface-muted px-3 py-2 font-sans text-[13px] text-fg",
+              "outline-none focus-visible:ring-2 focus-visible:ring-agency-brand",
+            )}
+          >
+            <option value="">—</option>
+            {team.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 font-sans text-[12px] text-fg-muted">
+          <span>Forfaldsdato</span>
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className={cn(
+              "rounded-md border border-border bg-surface-muted px-3 py-2 font-sans text-[13px] text-fg",
+              "outline-none focus-visible:ring-2 focus-visible:ring-agency-brand",
+            )}
+          />
+        </label>
+        <label className="flex flex-col gap-1 font-sans text-[12px] text-fg-muted">
+          <span>Prioritet</span>
+          <select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+            className={cn(
+              "rounded-md border border-border bg-surface-muted px-3 py-2 font-sans text-[13px] text-fg",
+              "outline-none focus-visible:ring-2 focus-visible:ring-agency-brand",
+            )}
+          >
+            <option value="high">Høj</option>
+            <option value="medium">Medium</option>
+            <option value="low">Lav</option>
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 font-sans text-[12px] text-fg-muted">
+          <span>Status</span>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className={cn(
+              "rounded-md border border-border bg-surface-muted px-3 py-2 font-sans text-[13px] text-fg",
+              "outline-none focus-visible:ring-2 focus-visible:ring-agency-brand",
+            )}
+          >
+            <option value="todo">Todo</option>
+            <option value="doing">I gang</option>
+            <option value="review">Review</option>
+            <option value="blocked">Blokeret</option>
+            <option value="done">Færdig</option>
+            <option value="cancelled">Afbrudt</option>
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 font-sans text-[12px] text-fg-muted">
+          <span>Stabil nøgle (valgfri)</span>
+          <input
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            placeholder="fx t-akme-audit"
+            className={cn(
+              "rounded-md border border-border bg-surface-muted px-3 py-2 font-mono text-[12px] text-fg",
+              "outline-none focus-visible:ring-2 focus-visible:ring-agency-brand",
+            )}
+          />
+        </label>
+      </div>
+      {error ? (
+        <p className="mt-3 rounded-lg border border-agency-bad-border bg-agency-bad-soft px-3 py-2 font-sans text-[12px] text-agency-bad">
+          {error}
+        </p>
+      ) : null}
+      <div className="mt-5 flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={submitting || !title.trim()}
+          onClick={() => submit()}
+          className={cn(
+            "inline-flex h-9 items-center rounded-md px-4 font-sans text-[13px] font-medium",
+            "bg-agency-brand text-white hover:opacity-90 disabled:opacity-40",
+          )}
+        >
+          {submitting ? "Opretter…" : "Opret"}
+        </button>
+        <button
+          type="button"
+          disabled={submitting}
+          onClick={onCancel}
+          className="inline-flex h-9 items-center rounded-md border border-border bg-surface-muted px-4 font-sans text-[13px] text-fg-muted hover:bg-surface-card"
+        >
+          Annuller
+        </button>
+      </div>
+    </div>
+  );
+}

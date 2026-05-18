@@ -3,16 +3,30 @@ import { DEPARTMENTS } from "@/lib/crm/static-data";
 import { cn } from "@/lib/utils";
 
 /**
- * @param {{ member?: { id: string; name: string; role: string; avatar: string; hue: number; dept: string } | null }} props
+ * @param {{
+ *   member?: { id: string; name: string; role: string; avatar: string; hue: number; dept: string } | null;
+ *   departmentsLookup?: Array<{ id: string; short?: string; color?: string }>;
+ * }} props
  */
-export function TaskDetailAssigneeCard({ member }) {
-  const dep = member ? DEPARTMENTS.find((d) => d.id === member.dept) : null;
+export function TaskDetailAssigneeCard({ member, departmentsLookup }) {
+  const deps = departmentsLookup?.length ?
+    departmentsLookup.map((d) => ({
+      id: d.id,
+      short:
+        typeof d.short === "string" ? d.short : typeof d.id === "string" ? d.id.slice(0, 4).toUpperCase() : "?",
+      color: d.color,
+    }))
+  : DEPARTMENTS;
+
+  const dep = member ? deps.find((d) => d.id === member.dept) : null;
 
   return (
     <div className="rounded-2xl border border-border bg-surface-card p-4 shadow-inset-card md:p-5">
       <h2 className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-fg-soft">Ansvarlig</h2>
-      <p className="mt-2 font-sans text-[11px] leading-snug text-fg-muted">Tildeling fra mock-board — erstattes med capacity + rolle-matrix.</p>
-      {member ? (
+      <p className="mt-2 font-sans text-[11px] leading-snug text-fg-muted">
+        Tilknyttet CRM-teamprofil ved <span className="font-mono">TeamMember.assigneeMemberKey → task.assigneeMemberKey</span>.
+      </p>
+      {member ?
         <div className={cn("mt-4 flex items-start gap-3 border-t border-border-soft pt-4")}>
           <CrmAvatar label={member.avatar} hue={member.hue} className="size-12 text-[13px]" />
           <div className="min-w-0">
@@ -23,11 +37,10 @@ export function TaskDetailAssigneeCard({ member }) {
             </p>
           </div>
         </div>
-      ) : (
-        <p className="mt-4 rounded-xl border border-dashed border-border bg-surface-muted/30 px-3 py-5 text-[13px] text-fg-muted">
-          Ingen `assigneeId` match i <span className="font-mono">TEAM</span> — tjek mock-data.
+      : <p className="mt-4 rounded-xl border border-dashed border-border bg-surface-muted/30 px-3 py-5 text-[13px] text-fg-muted">
+          Ingen teammedlem tildelt for denne opgave — vælg under CRM-fanen.
         </p>
-      )}
+      }
     </div>
   );
 }

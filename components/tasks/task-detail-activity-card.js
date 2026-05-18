@@ -11,25 +11,31 @@ function formatActivityAt(raw) {
 }
 
 /**
- * @param {{ entries: { id: string; at: string; actorId: string; kind: string; body: string }[] }} props
+ * @param {{
+ *   entries: Array<{ id: string; at: string; kind: string; body?: string; summary?: string; actorId?: string }>;
+ *   footnote?: string;
+ *   mongoMode?: boolean;
+ * }} props
  */
-export function TaskDetailActivityCard({ entries }) {
-  const sorted = [...entries].sort((a, b) => b.at.localeCompare(a.at));
+export function TaskDetailActivityCard({ entries, footnote, mongoMode = false }) {
+  const sorted = [...entries].sort((a, b) => String(b.at).localeCompare(String(a.at)));
+
+  const defaultFootnote = mongoMode
+    ? undefined
+    : "Hendelser fra TASK_ACTIVITY_LOG — seneste først.";
 
   return (
     <div className="rounded-2xl border border-border bg-surface-card p-4 shadow-inset-card md:p-5">
       <h2 className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-fg-soft">Aktivitetslog</h2>
-      <p className="mt-2 font-sans text-[11px] leading-snug text-fg-muted">
-        Hendelser fra <span className="font-mono">TASK_ACTIVITY_LOG</span> — seneste først.
-      </p>
+      <p className="mt-2 font-sans text-[11px] leading-snug text-fg-muted">{footnote ?? defaultFootnote}</p>
       <ul className="mt-4 flex flex-col gap-3">
-        {sorted.length === 0 ? (
+        {sorted.length === 0 ?
           <li className="rounded-xl border border-dashed border-border bg-surface-muted/30 px-3 py-8 text-center text-[13px] text-fg-muted">
             Ingen logposter for denne opgave.
           </li>
-        ) : (
-          sorted.map((row) => {
-            const actor = TEAM.find((t) => t.id === row.actorId);
+        : sorted.map((row) => {
+            const actor = row.actorId ? TEAM.find((t) => t.id === row.actorId) : null;
+            const body = row.body ?? row.summary ?? "";
             return (
               <li key={row.id} className="rounded-xl border border-border-soft bg-surface-muted/40 px-3 py-3">
                 <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] text-fg-quiet">
@@ -38,17 +44,17 @@ export function TaskDetailActivityCard({ entries }) {
                   <span className="font-semibold uppercase tracking-wide text-fg-soft">{row.kind}</span>
                 </div>
                 <div className="mt-2 flex gap-2">
-                  {actor ? (
+                  {actor ?
                     <CrmAvatar label={actor.avatar} hue={actor.hue} className="size-8 shrink-0 text-[11px]" />
-                  ) : null}
+                  : null}
                   <p className={cn("leading-relaxed text-[13px] text-fg-muted", actor ? "min-w-0 pt-1" : "w-full")}>
-                    {row.body}
+                    {body}
                   </p>
                 </div>
               </li>
             );
           })
-        )}
+        }
       </ul>
     </div>
   );

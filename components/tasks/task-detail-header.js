@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
  *   task: {
  *     id: string;
  *     title: string;
- *     status: 'todo' | 'doing' | 'review' | 'done' | 'blocked';
+ *     status: 'todo' | 'doing' | 'review' | 'done' | 'blocked' | 'cancelled';
  *     priority: 'high' | 'medium' | 'low';
  *     dept: string;
  *     clientName: string;
@@ -23,9 +23,21 @@ import { cn } from "@/lib/utils";
  *   };
  *   deptLabel: string;
  *   subtitle: string;
+ *   trailing?: import('react').ReactNode;
+ *   dueReferenceIso?: string;
+ *   showExport?: boolean;
  * }} props
  */
-export function TaskDetailHeader({ task, deptLabel, subtitle }) {
+export function TaskDetailHeader({
+  task,
+  deptLabel,
+  subtitle,
+  trailing,
+  dueReferenceIso,
+  showExport = true,
+}) {
+  const refIso = dueReferenceIso || TASK_DEMO_REF_DATE;
+
   return (
     <>
       <nav aria-label="Brødkrummer" className="font-sans text-[13px] text-fg-muted">
@@ -61,7 +73,7 @@ export function TaskDetailHeader({ task, deptLabel, subtitle }) {
             <h1 className="font-sans text-[22px] font-semibold tracking-tight text-fg">{task.title}</h1>
             <p className="mt-1 max-w-prose font-sans text-[13px] leading-snug text-fg-muted">
               {task.clientName}
-              <span className="font-mono tabular-nums text-fg-quiet"> · Mock ref. {TASK_DEMO_REF_DATE}</span>
+              <span className="font-mono tabular-nums text-fg-quiet"> · Due-ref. {refIso}</span>
               <br />
               {subtitle}
             </p>
@@ -72,13 +84,16 @@ export function TaskDetailHeader({ task, deptLabel, subtitle }) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className="inline-flex h-[26px] items-center gap-1.5 rounded-md border border-border bg-surface-muted px-3 font-sans text-[11px] font-medium text-fg-muted transition-colors hover:border-agency-brand-border hover:bg-agency-brand-soft hover:text-agency-brand"
-          >
-            <PulseIconDownload size={12} /> Eksport
-          </button>
+        <div className="flex shrink-0 flex-col items-end gap-2 md:mt-1">
+          {trailing ?? null}
+          {showExport ?
+            <button
+              type="button"
+              className="inline-flex h-[26px] items-center gap-1.5 rounded-md border border-border bg-surface-muted px-3 font-sans text-[11px] font-medium text-fg-muted transition-colors hover:border-agency-brand-border hover:bg-agency-brand-soft hover:text-agency-brand"
+            >
+              <PulseIconDownload size={12} /> Eksport
+            </button>
+          : null}
         </div>
       </header>
     </>

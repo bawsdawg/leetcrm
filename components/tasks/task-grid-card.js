@@ -4,8 +4,7 @@ import { TaskPriorityChip } from "@/components/crm/task-priority-chip";
 import { TaskStatusChip } from "@/components/crm/task-status-chip";
 import { routes } from "@/config/routes";
 import { formatIsoDateDa } from "@/lib/crm/format-da";
-import { DEPARTMENTS } from "@/lib/crm/static-data";
-import { taskDaysUntilDue, taskIsOverdue } from "@/lib/crm/task-utils";
+import { taskDaysUntilDue, taskIsDone, taskIsOverdue } from "@/lib/crm/task-utils";
 import { cn } from "@/lib/utils";
 
 /**
@@ -13,27 +12,33 @@ import { cn } from "@/lib/utils";
  *   row: {
  *     id: string;
  *     title: string;
- *     hint: string;
- *     clientId: string;
+ *     hint?: string;
+ *     clientId?: string;
  *     clientName: string;
  *     clientLogo: string;
  *     clientHue: number;
  *     assigneeId: string;
  *     dept: string;
- *     status: 'todo' | 'doing' | 'review' | 'done' | 'blocked';
+ *     status: string;
  *     priority: 'high' | 'medium' | 'low';
  *     dueDate: string;
  *   };
+ *   dueReferenceIso: string;
+ *   departments?: Array<{ id: string; short?: string }>;
  * }} props
  */
-export function TaskGridCard({ row }) {
-  const dep = DEPARTMENTS.find((d) => d.id === row.dept);
-  const overdue = taskIsOverdue(row);
-  const daysLeft = row.status !== "done" ? taskDaysUntilDue(row.dueDate) : null;
+export function TaskGridCard({ row, dueReferenceIso, departments = [] }) {
+  const dep = departments.find((d) => d.id === row.dept);
+  const overdue = taskIsOverdue(row, dueReferenceIso);
+  const daysLeft =
+    !taskIsDone(row.status) ? taskDaysUntilDue(row.dueDate, dueReferenceIso) : null;
+
+  const depShort =
+    typeof dep?.short === "string" ? dep.short : row.dept ? row.dept.slice(0, 4).toUpperCase() : "—";
 
   return (
     <Link
-      href={`${routes.tasks}/${row.id}`}
+      href={`${routes.tasks}/${encodeURIComponent(row.id)}`}
       className={cn(
         "flex flex-col rounded-2xl border border-border bg-surface-card p-3.5 shadow-inset-card transition-all",
         "hover:border-agency-brand-border hover:shadow-agency-raised md:p-4",
@@ -86,7 +91,7 @@ export function TaskGridCard({ row }) {
         </div>
         <div>
           <div className="text-[10px] font-semibold uppercase tracking-wide text-fg-soft">Disciplin</div>
-          <div className="mt-0.5 text-fg">{dep?.short ?? row.dept.toUpperCase()}</div>
+          <div className="mt-0.5 text-fg">{depShort}</div>
         </div>
       </div>
     </Link>

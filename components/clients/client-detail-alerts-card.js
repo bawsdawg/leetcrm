@@ -14,9 +14,10 @@ import { cn } from "@/lib/utils";
  *     age: string;
  *     client?: string | null;
  *   }>;
+ *   description?: string;
  * }} props
  */
-export function ClientDetailAlertsCard({ clientId, alerts }) {
+export function ClientDetailAlertsCard({ clientId, alerts, description }) {
   const rows = alerts.filter((a) => a.client === clientId);
 
   return (
@@ -30,7 +31,11 @@ export function ClientDetailAlertsCard({ clientId, alerts }) {
         </Link>
       </div>
       <p className="mt-2 font-sans text-[11px] leading-snug text-fg-muted">
-        Read-only udtræk af mock-alerts matcher på <span className="font-mono text-fg">{clientId}</span>.
+        {description ?? (
+          <>
+            Read-only udtræk af alerts matcher på <span className="font-mono text-fg">{clientId}</span>.
+          </>
+        )}
       </p>
 
       <ul className="mt-4 flex flex-col gap-2 font-sans text-[13px]">
