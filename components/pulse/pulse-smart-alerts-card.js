@@ -2,11 +2,11 @@ import Link from "next/link";
 
 import { PulseIconSparkle } from "@/components/pulse/pulse-icons";
 import { routes } from "@/config/routes";
-import { CLIENTS, SMART_ALERTS } from "@/lib/crm/static-data";
+import { usePulseData } from "@/components/pulse/pulse-data-context";
 import { cn } from "@/lib/utils";
 
 export function PulseSmartAlertsCard() {
-  const alerts = SMART_ALERTS;
+  const { smartAlerts: alerts, clients: CLIENTS } = usePulseData();
   const counts = {
     bad: alerts.filter((a) => a.severity === "bad").length,
     warn: alerts.filter((a) => a.severity === "warn").length,
@@ -43,6 +43,11 @@ export function PulseSmartAlertsCard() {
       </div>
 
       <ul className="max-h-[420px] overflow-y-auto overscroll-contain">
+        {alerts.length === 0 ? (
+          <li className="px-4 py-6 font-sans text-[13px] text-fg-muted md:px-5">
+            Ingen aktive alerts — alt ser roligt ud.
+          </li>
+        ) : null}
         {alerts.map((a, i) => {
           const c = a.client ? CLIENTS.find((x) => x.id === a.client) : null;
           const href = c ? `${routes.clients}/${c.id}` : null;

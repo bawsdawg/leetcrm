@@ -1,9 +1,9 @@
 import { PulseCardHeader } from "@/components/pulse/pulse-card-header";
 import { PulseUtilBar } from "@/components/pulse/pulse-util-bar";
-import { AGENCY_METRICS, CLIENTS } from "@/lib/crm/static-data";
+import { usePulseData } from "@/components/pulse/pulse-data-context";
 
 export function PulseHealthDistribution() {
-  const m = AGENCY_METRICS;
+  const { agencyMetrics: m, clients: CLIENTS } = usePulseData();
   const total = Math.max(m.activeClients, 1);
   const segs = [
     { label: "Sund", n: m.healthyClients, color: "var(--agency-ok)" },

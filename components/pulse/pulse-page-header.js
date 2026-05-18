@@ -4,11 +4,11 @@ import { useState } from "react";
 
 import { PulseIconDownload } from "@/components/pulse/pulse-icons";
 import { PulseSegmentedControl } from "@/components/pulse/pulse-segmented-control";
-import { AGENCY_METRICS } from "@/lib/crm/static-data";
+import { usePulseData } from "@/components/pulse/pulse-data-context";
 
 export function PulsePageHeader() {
   const [period, setPeriod] = useState("month");
-  const m = AGENCY_METRICS;
+  const { agencyMetrics: m } = usePulseData();
 
   return (
     <header className="flex flex-col gap-4 border-b border-border/70 pb-6 md:flex-row md:items-start md:justify-between">

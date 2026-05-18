@@ -6,12 +6,13 @@ import { PulseUtilBar } from "@/components/pulse/pulse-util-bar";
 import { routes } from "@/config/routes";
 import { agencyDeptColor } from "@/lib/crm/dept-tokens";
 import { formatCurrencyCompact, formatPercent } from "@/lib/crm/format-da";
-import { DEPARTMENTS, DEPT_PERFORMANCE } from "@/lib/crm/static-data";
+import { usePulseData } from "@/components/pulse/pulse-data-context";
 import { cn } from "@/lib/utils";
 
 export function PulseProfitabilityChart() {
-  const rows = DEPT_PERFORMANCE;
+  const { deptPerformance: rows, departments: DEPARTMENTS } = usePulseData();
   const maxRev = Math.max(...rows.map((r) => r.revenue), 1);
+  const overBudgetDept = rows.find((r) => r.util > 1);
 
   return (
     <section
@@ -111,7 +112,14 @@ export function PulseProfitabilityChart() {
         <span className="inline-flex items-center gap-2 md:ml-auto">
           <PulseIconTrendUp className="text-agency-ok" size={12} />
           <span className="text-fg-muted">
-            PPC er 9% over budget —{" "}
+            {overBudgetDept ? (
+              <>
+                {DEPARTMENTS.find((x) => x.id === overBudgetDept.dept)?.name ?? overBudgetDept.dept}{" "}
+                er {formatPercent(overBudgetDept.util - 1)} over budget —{" "}
+              </>
+            ) : (
+              <>Alle afdelinger inden for budget — </>
+            )}
             <Link href={routes.clients} className="text-agency-brand hover:underline">
               se kunder
             </Link>

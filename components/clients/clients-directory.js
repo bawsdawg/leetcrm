@@ -19,7 +19,8 @@ import { PulseSegmentedControl } from "@/components/pulse/pulse-segmented-contro
 import { PulseUtilBar } from "@/components/pulse/pulse-util-bar";
 import { routes } from "@/config/routes";
 import { formatCurrencyCompact, formatPercent } from "@/lib/crm/format-da";
-import { CLIENTS, TEAM } from "@/lib/crm/static-data";
+import { usePulseDataOptional } from "@/components/pulse/pulse-data-context";
+import { CLIENTS as STATIC_CLIENTS, TEAM as STATIC_TEAM } from "@/lib/crm/static-data";
 import { cn } from "@/lib/utils";
 
 const GRID_PULSE =
@@ -32,13 +33,20 @@ const GRID_FULL =
  *   variant?: 'pulse' | 'full';
  *   headingId?: string;
  *   toolbarTitle?: string;
+ *   clients?: import('@/lib/crm/pulse-types').PulseClient[];
+ *   team?: import('@/lib/crm/pulse-types').PulseTeamMember[];
  * }} props
  */
 export function ClientsDirectory({
   variant = "pulse",
   headingId,
   toolbarTitle = "Alle kunder",
+  clients: clientsProp,
+  team: teamProp,
 }) {
+  const pulseCtx = usePulseDataOptional();
+  const CLIENTS = clientsProp ?? pulseCtx?.clients ?? STATIC_CLIENTS;
+  const TEAM = teamProp ?? pulseCtx?.team ?? STATIC_TEAM;
   const resolvedHeadingId =
     headingId ?? (variant === "pulse" ? "pulse-clients-heading" : "clients-directory-heading");
 
@@ -47,7 +55,7 @@ export function ClientsDirectory({
   const [sort, setSort] = useState("name");
   const [density, setDensity] = useState("list");
 
-  const unhealthyCount = useMemo(() => CLIENTS.filter((c) => c.health !== "ok").length, []);
+  const unhealthyCount = useMemo(() => CLIENTS.filter((c) => c.health !== "ok").length, [CLIENTS]);
 
   const filtered = useMemo(() => {
     const list = CLIENTS.filter((c) => {
@@ -72,7 +80,7 @@ export function ClientsDirectory({
     });
 
     return list;
-  }, [q, filter, sort]);
+  }, [q, filter, sort, CLIENTS]);
 
   const gridCols = variant === "full" ? GRID_FULL : GRID_PULSE;
   const minW = variant === "full" ? "min-w-[1040px]" : "min-w-[920px]";

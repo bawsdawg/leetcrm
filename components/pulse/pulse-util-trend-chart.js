@@ -1,8 +1,8 @@
 import { PulseCardHeader } from "@/components/pulse/pulse-card-header";
-import { UTIL_TREND } from "@/lib/crm/static-data";
+import { usePulseData } from "@/components/pulse/pulse-data-context";
 
 export function PulseUtilTrendChart() {
-  const data = UTIL_TREND;
+  const { utilTrend: data } = usePulseData();
   const maxVal = Math.max(...data.flatMap((d) => [d.billable + d.overhead]), 1) * 1.1;
 
   const w = 560;
