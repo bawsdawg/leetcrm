@@ -35,6 +35,7 @@ const GRID_FULL =
  *   toolbarTitle?: string;
  *   clients?: import('@/lib/crm/pulse-types').PulseClient[];
  *   team?: import('@/lib/crm/pulse-types').PulseTeamMember[];
+ *   hoursColumnLabel?: string;
  * }} props
  */
 export function ClientsDirectory({
@@ -43,6 +44,7 @@ export function ClientsDirectory({
   toolbarTitle = "Alle kunder",
   clients: clientsProp,
   team: teamProp,
+  hoursColumnLabel,
 }) {
   const pulseCtx = usePulseDataOptional();
   const CLIENTS = clientsProp ?? pulseCtx?.clients ?? STATIC_CLIENTS;
@@ -58,9 +60,10 @@ export function ClientsDirectory({
   const unhealthyCount = useMemo(() => CLIENTS.filter((c) => c.health !== "ok").length, [CLIENTS]);
 
   const filtered = useMemo(() => {
+    const ql = q.trim().toLowerCase();
     const list = CLIENTS.filter((c) => {
-      const ql = q.trim().toLowerCase();
-      if (ql && !c.name.toLowerCase().includes(ql) && !c.industry.toLowerCase().includes(ql)) {
+      const industry = (c.industry ?? "").toLowerCase();
+      if (ql && !c.name.toLowerCase().includes(ql) && !industry.includes(ql)) {
         return false;
       }
       if (filter === "unhealthy" && c.health === "ok") return false;
@@ -83,6 +86,7 @@ export function ClientsDirectory({
   }, [q, filter, sort, CLIENTS]);
 
   const gridCols = variant === "full" ? GRID_FULL : GRID_PULSE;
+  const hoursLabel = hoursColumnLabel ?? "Timer denne md";
   const minW = variant === "full" ? "min-w-[1040px]" : "min-w-[920px]";
 
   return (
@@ -176,7 +180,7 @@ export function ClientsDirectory({
                 className="text-left font-[inherit] text-[inherit] hover:text-fg"
                 onClick={() => setSort("util")}
               >
-                Timer denne md
+                {hoursLabel}
               </button>
               <span>Margin</span>
               <span>Allokering</span>

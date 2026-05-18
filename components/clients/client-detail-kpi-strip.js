@@ -2,9 +2,9 @@ import { PulseKpiCard } from "@/components/pulse/pulse-kpi-card";
 import { formatCurrencyCompact, formatPercent } from "@/lib/crm/format-da";
 
 /**
- * @param {{ client: import('@/lib/crm/static-data').CLIENTS[number] }} props
+ * @param {{ client: import('@/lib/crm/static-data').CLIENTS[number]; timerLabel?: string }} props
  */
-export function ClientDetailKpiStrip({ client }) {
+export function ClientDetailKpiStrip({ client, timerLabel = "Timer denne md" }) {
   const utilRatio =
     client.hoursBudget > 0 ? client.hoursThisMonth / client.hoursBudget : 0;
   const timerTone = utilRatio > 1 ? "bad" : utilRatio > 0.9 ? "warn" : "ok";
@@ -26,7 +26,7 @@ export function ClientDetailKpiStrip({ client }) {
         tone="brand"
       />
       <PulseKpiCard
-        label="Timer denne md"
+        label={timerLabel}
         value={`${client.hoursThisMonth} / ${client.hoursBudget} t`}
         tone={timerTone}
       />

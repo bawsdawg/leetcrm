@@ -17,9 +17,10 @@ import { cn } from "@/lib/utils";
  *     dueDate: string;
  *   }>;
  *   clientLabel: string;
+ *   sourceLabel?: string;
  * }} props
  */
-export function ClientDetailTasksCard({ tasks, clientLabel }) {
+export function ClientDetailTasksCard({ tasks, clientLabel, sourceLabel = "mock TASKS" }) {
   const sorted = [...tasks].sort((a, b) => {
     const ad = taskIsDone(a.status) ? 1 : 0;
     const bd = taskIsDone(b.status) ? 1 : 0;
@@ -39,7 +40,7 @@ export function ClientDetailTasksCard({ tasks, clientLabel }) {
       </div>
 
       <p className="mt-2 font-sans text-[11px] leading-snug text-fg-muted">
-        Filtreret fra mock <span className="font-mono">TASKS</span> for{" "}
+        Filtreret fra <span className="font-mono">{sourceLabel}</span> for{" "}
         <span className="font-semibold text-fg">{clientLabel}</span>.
       </p>
 

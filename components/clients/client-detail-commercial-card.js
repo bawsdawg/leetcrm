@@ -24,12 +24,17 @@ import { cn } from "@/lib/utils";
  *       }
  *     | undefined
  *     | null;
+ *   contractDetailHref?: string | null;
  * }} props
  */
-export function ClientDetailCommercialCard({ client, contract }) {
+export function ClientDetailCommercialCard({ client, contract, contractDetailHref }) {
   const renewalIso = contract?.renewalAt ?? client.renewalAt;
   const renewalDays = contractDaysUntilRenewal(renewalIso);
   const activeCommercially = contract?.accountStatus === "active" || (!contract && client.status === "active");
+  const primaryContractHref =
+    contractDetailHref === null
+      ? null
+      : contractDetailHref ?? (contract?.id ? `${routes.contracts}/${contract.id}` : null);
   const renewalSubTone =
     renewalDays < 0
       ? "text-agency-bad"
@@ -44,9 +49,9 @@ export function ClientDetailCommercialCard({ client, contract }) {
           Kontrakt & økonomi
         </h2>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          {contract?.id ? (
+          {primaryContractHref ? (
             <Link
-              href={`${routes.contracts}/${contract.id}`}
+              href={primaryContractHref}
               className="font-sans text-[11px] font-medium text-agency-brand hover:underline"
             >
               Åbn aftale-detajler →

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { CrmAvatar } from "@/components/crm/crm-avatar";
 import { HealthChip } from "@/components/crm/health-chip";
 import { StatusChip } from "@/components/crm/status-chip";
-import { PulseIconDownload } from "@/components/pulse/pulse-icons";
 import { routes } from "@/config/routes";
 import { cn } from "@/lib/utils";
 
@@ -22,9 +21,10 @@ import { cn } from "@/lib/utils";
  *     lastActivity: string;
  *   };
  *   owner: { name: string; role: string; avatar: string; hue: number } | null;
+ *   trailing?: import('react').ReactNode;
  * }} props
  */
-export function ClientDetailHeader({ client, owner }) {
+export function ClientDetailHeader({ client, owner, trailing }) {
   return (
     <>
       <nav aria-label="Brødkrummer" className="font-sans text-[13px] text-fg-muted">
@@ -83,14 +83,7 @@ export function ClientDetailHeader({ client, owner }) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className="inline-flex h-[26px] items-center gap-1.5 rounded-md border border-border bg-surface-muted px-3 font-sans text-[11px] font-medium text-fg-muted transition-colors hover:border-agency-brand-border hover:bg-agency-brand-soft hover:text-agency-brand"
-          >
-            <PulseIconDownload size={12} /> Eksport
-          </button>
-        </div>
+        {trailing ? <div className="flex flex-wrap items-start justify-end gap-2">{trailing}</div> : null}
       </header>
     </>
   );

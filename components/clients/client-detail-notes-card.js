@@ -3,9 +3,13 @@ import { TEAM } from "@/lib/crm/static-data";
 import { cn } from "@/lib/utils";
 
 /**
- * @param {{ notes: Array<{ id: string; who: string; at: string; type: string; body: string }> }} props
+ * @param {{
+ *   notes: Array<{ id: string; who: string; at: string; type: string; body: string }>;
+ *   teamMembers?: import('@/lib/crm/pulse-types').PulseTeamMember[];
+ * }} props
  */
-export function ClientDetailNotesCard({ notes }) {
+export function ClientDetailNotesCard({ notes, teamMembers }) {
+  const roster = teamMembers?.length ? teamMembers : TEAM;
   return (
     <div className="rounded-2xl border border-border bg-surface-card p-4 shadow-inset-card md:p-5">
       <h2 className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-fg-soft">
@@ -18,7 +22,7 @@ export function ClientDetailNotesCard({ notes }) {
           </li>
         ) : (
           notes.map((n) => {
-            const author = TEAM.find((t) => t.id === n.who);
+            const author = roster.find((t) => t.id === n.who);
             return (
               <li
                 key={n.id}

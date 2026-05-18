@@ -162,11 +162,6 @@ export function CrmSidebar({
                 >
                   {iconWrap}
                   {!collapsed ? <span className="truncate">{item.label}</span> : null}
-                  {!collapsed && item.badge === "clients" ? (
-                    <span className="ml-auto font-mono text-[11px] tabular-nums text-fg-quiet">
-                      {clientCount}
-                    </span>
-                  ) : null}
                 </Link>
               );
             })}

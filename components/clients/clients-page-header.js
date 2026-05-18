@@ -1,11 +1,39 @@
 "use client";
 
-import { PulseIconDownload } from "@/components/pulse/pulse-icons";
-import { CLIENTS } from "@/lib/crm/static-data";
+import { ReportPeriodPicker } from "@/components/crm/report-period-picker";
+import { formatReportPeriodSubtitle } from "@/lib/crm/report-period";
+import { cn } from "@/lib/utils";
 
-export function ClientsPageHeader() {
-  const unhealthy = CLIENTS.filter((c) => c.health !== "ok").length;
-  const overBudget = CLIENTS.filter((c) => c.hoursThisMonth > c.hoursBudget).length;
+/**
+ * @param {{
+ *   period: { year: number; month: number };
+ *   onPeriodChange: (p: { year: number; month: number }) => void;
+ *   refreshing?: boolean;
+ *   loading?: boolean;
+ *   clients?: import('@/lib/crm/pulse-types').PulseClient[] | null;
+ * }} props
+ */
+export function ClientsPageHeader({
+  period,
+  onPeriodChange,
+  refreshing = false,
+  loading = false,
+  clients = null,
+}) {
+  const subtitle = formatReportPeriodSubtitle(period.year, period.month);
+  let bodyLine = "";
+
+  if (loading && !clients) {
+    bodyLine = "Indlæser portefølje…";
+  } else if (clients && clients.length > 0) {
+    const unhealthy = clients.filter((c) => c.health !== "ok").length;
+    const overBudget = clients.filter((c) => c.hoursBudget > 0 && c.hoursThisMonth > c.hoursBudget).length;
+    bodyLine = `${clients.length} kunder i porteføljen`;
+    if (unhealthy > 0) bodyLine += ` · ${unhealthy} med sundhedsadvarsler`;
+    if (overBudget > 0) bodyLine += ` · ${overBudget} over timebudget`;
+  } else if (clients?.length === 0) {
+    bodyLine = "Ingen kunder i denne datakilde endnu";
+  }
 
   return (
     <header className="flex flex-col gap-4 border-b border-border/70 pb-6 md:flex-row md:items-start md:justify-between">
@@ -13,24 +41,19 @@ export function ClientsPageHeader() {
         <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-fg-soft">
           Portefølje
         </p>
-        <h1 className="font-sans text-[22px] font-semibold tracking-tight text-fg md:text-[22px]">
-          Kunder
-        </h1>
-        <p className="mt-1 max-w-prose font-sans text-[13px] leading-snug text-fg-muted">
-          {CLIENTS.length} kunder i porteføljen
-          {unhealthy > 0 ? ` · ${unhealthy} med sundhedsadvarsler` : ""}
-          {overBudget > 0 ? ` · ${overBudget} over timebudget` : ""}
-        </p>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          className="inline-flex h-[26px] items-center gap-1.5 rounded-md border border-border bg-surface-muted px-3 font-sans text-[11px] font-medium text-fg-muted transition-colors hover:border-agency-brand-border hover:bg-agency-brand-soft hover:text-agency-brand"
+        <h1 className="font-sans text-[22px] font-semibold tracking-tight text-fg md:text-[22px]">Kunder</h1>
+        <p
+          className={cn(
+            "mt-1 max-w-prose font-sans text-[13px] leading-snug text-fg-muted transition-opacity",
+            refreshing && "opacity-60",
+          )}
         >
-          <PulseIconDownload size={12} /> Eksport
-        </button>
-      </div>
+          <span className="capitalize">{subtitle}</span>
+          {bodyLine ? <> · {bodyLine}</> : null}
+        </p>
+        </div>
+
+      <ReportPeriodPicker year={period.year} month={period.month} onChange={onPeriodChange} />
     </header>
   );
 }
