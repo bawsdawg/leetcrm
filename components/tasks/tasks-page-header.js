@@ -20,8 +20,8 @@ import { cn } from "@/lib/utils";
  *   mineLabel?: string | null;
  *   taskDueReferenceIso?: string;
  *   periodLabel?: string;
- *   onToggleCreate?: () => void;
- *   creating?: boolean;
+ *   onOpenCreate?: () => void;
+ *   createModalOpen?: boolean;
  *   dataSource: "demo" | "database";
  * }} props
  */
@@ -34,8 +34,8 @@ export function TasksPageHeader({
   mineLabel = null,
   taskDueReferenceIso = "",
   periodLabel = "",
-  onToggleCreate,
-  creating = false,
+  onOpenCreate,
+  createModalOpen = false,
   dataSource,
 }) {
   const subtitle = formatReportPeriodSubtitle(period.year, period.month);
@@ -83,18 +83,20 @@ export function TasksPageHeader({
 
       <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-start sm:justify-end">
         <div className="flex flex-wrap justify-end gap-2">
-          {onToggleCreate && dataSource === "database" ?
+          {onOpenCreate && dataSource === "database" ?
             <button
               type="button"
-              onClick={onToggleCreate}
+              onClick={onOpenCreate}
+              aria-haspopup="dialog"
+              aria-expanded={createModalOpen}
               className={cn(
                 "inline-flex h-[34px] items-center rounded-md border px-4 font-sans text-[13px] font-medium",
-                creating ?
+                createModalOpen ?
                   "border-agency-brand-border bg-agency-brand-soft text-agency-brand"
                 : "border-border bg-surface-muted text-fg-muted hover:border-agency-brand-border hover:bg-agency-brand-soft hover:text-agency-brand",
               )}
             >
-              {creating ? "Skjul formular" : "Ny opgave"}
+              Ny opgave
             </button>
           : null}
         </div>

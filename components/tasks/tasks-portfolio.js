@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { CrmDialog } from "@/components/crm/crm-dialog";
 import { TasksCreateForm } from "@/components/tasks/tasks-create-form";
 import { TasksDirectory } from "@/components/tasks/tasks-directory";
 import { TasksPageHeader } from "@/components/tasks/tasks-page-header";
@@ -23,9 +24,21 @@ export function TasksPortfolio() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(/** @type {string | null} */ (null));
   const [showCreate, setShowCreate] = useState(false);
+  const [createFormKey, setCreateFormKey] = useState(0);
   const [createSubmitting, setCreateSubmitting] = useState(false);
   const [createError, setCreateError] = useState(/** @type {string | null} */ (null));
   const hasLoadedRef = useRef(false);
+
+  const openCreateModal = useCallback(() => {
+    setCreateFormKey((n) => n + 1);
+    setShowCreate(true);
+    setCreateError(null);
+  }, []);
+
+  const closeCreateModal = useCallback(() => {
+    setShowCreate(false);
+    setCreateError(null);
+  }, []);
 
   const handlePeriodChange = useCallback((next) => {
     setPeriod(normalizeReportPeriod(next));
@@ -97,7 +110,7 @@ export function TasksPortfolio() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error ?? "Kunne ikke oprette");
-        setShowCreate(false);
+        closeCreateModal();
         await load();
         if (typeof data?.wire?.id === "string" && data.wire.id) {
           router.push(`/tasks/${encodeURIComponent(data.wire.id)}`);
@@ -108,7 +121,7 @@ export function TasksPortfolio() {
         setCreateSubmitting(false);
       }
     },
-    [dataSource, load, router],
+    [closeCreateModal, dataSource, load, router],
   );
 
   if (loading && !bundle) {
@@ -120,8 +133,8 @@ export function TasksPortfolio() {
           loading
           summary={null}
           mineLabel={null}
-          onToggleCreate={undefined}
-          creating={false}
+          onOpenCreate={undefined}
+          createModalOpen={false}
           dataSource={dataSource}
         />
         <div className="grid gap-[length:var(--ds-studio-stack)] sm:grid-cols-2 xl:grid-cols-4">
@@ -159,27 +172,55 @@ export function TasksPortfolio() {
         refreshing={refreshing}
         summary={bundle.summary}
         mineLabel={mineLabel || bundle.mineAssigneeKey || null}
-        onToggleCreate={dataSource === "database" ? () => setShowCreate((v) => !v) : undefined}
-        creating={showCreate}
+        onOpenCreate={dataSource === "database" ? openCreateModal : undefined}
+        createModalOpen={showCreate}
         dataSource={dataSource}
         taskDueReferenceIso={bundle.taskDueReferenceIso}
         periodLabel={bundle.period.label}
       />
 
-      {showCreate && dataSource === "database" ? (
-        <TasksCreateForm
-          departments={bundle.departments}
-          team={bundle.team}
-          clientsPicklist={bundle.clientsPicklist}
-          submitting={createSubmitting}
-          error={createError}
-          onSubmit={handleCreateSubmit}
-          onCancel={() => {
-            setShowCreate(false);
-            setCreateError(null);
-          }}
-        />
-      ) : null}
+      <CrmDialog
+        open={showCreate && dataSource === "database"}
+        onClose={closeCreateModal}
+        ariaLabel="Ny opgave"
+        maxWidthClass="w-[min(100vw-1.5rem,560px)]"
+      >
+        <div className="flex max-h-[min(92vh,920px)] flex-col">
+          <div className="flex shrink-0 items-start justify-between gap-3 border-b border-border px-5 py-4 md:px-6">
+            <div className="min-w-0">
+              <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-fg-soft">
+                Ny registrering
+              </p>
+              <h2 className="font-sans text-[17px] font-semibold leading-snug text-fg md:text-[18px]">Ny opgave</h2>
+              <p className="mt-1 font-sans text-[12px] text-fg-muted">
+                Gemmes i Mongo som <span className="font-mono text-[11px] text-fg-soft">tasks</span> med valgfri stabile nøgler og kundeslug.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={closeCreateModal}
+              disabled={createSubmitting}
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-surface-muted font-mono text-lg leading-none text-fg-muted hover:border-agency-brand-border hover:text-fg disabled:opacity-40"
+              aria-label="Luk"
+            >
+              ×
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-6 pt-4 md:px-6 md:pb-8">
+            <TasksCreateForm
+              key={createFormKey}
+              departments={bundle.departments}
+              team={bundle.team}
+              clientsPicklist={bundle.clientsPicklist}
+              submitting={createSubmitting}
+              error={createError}
+              onSubmit={handleCreateSubmit}
+              onCancel={closeCreateModal}
+              variant="modal"
+            />
+          </div>
+        </div>
+      </CrmDialog>
 
       <div className={cn("flex flex-col gap-[length:var(--ds-studio-stack)] transition-opacity", refreshing && "opacity-65")}>
         <TasksSummaryStrip summary={bundle.summary} />

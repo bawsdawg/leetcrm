@@ -13,9 +13,19 @@ import { cn } from "@/lib/utils";
  *   error?: string | null;
  *   onSubmit: (body: Record<string, unknown>) => void;
  *   onCancel: () => void;
+ *   variant?: "card" | "modal";
  * }} props
  */
-export function TasksCreateForm({ departments, team, clientsPicklist, submitting, error, onSubmit, onCancel }) {
+export function TasksCreateForm({
+  departments,
+  team,
+  clientsPicklist,
+  submitting,
+  error,
+  onSubmit,
+  onCancel,
+  variant = "card",
+}) {
   const [title, setTitle] = useState("");
   const [hint, setHint] = useState("");
   const [clientSlug, setClientSlug] = useState(clientsPicklist[0]?.value ?? "");
@@ -42,14 +52,20 @@ export function TasksCreateForm({ departments, team, clientsPicklist, submitting
     onSubmit(body);
   }, [title, hint, clientSlug, departmentKey, assigneeMemberKey, dueDate, priority, status, key, onSubmit]);
 
+  const isModal = variant === "modal";
+
   return (
     <div
-      className="rounded-2xl border border-border bg-surface-card p-4 shadow-inset-card md:p-5"
+      className={cn(
+        isModal ? "flex flex-col gap-4" : "rounded-2xl border border-border bg-surface-card p-4 shadow-inset-card md:p-5",
+      )}
       role="region"
-      aria-label="Opret opgave"
+      aria-label={isModal ? "Opret ny opgave — formular" : "Opret opgave"}
     >
-      <h2 className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-fg-soft">Ny opgave</h2>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      {isModal ? null : (
+        <h2 className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-fg-soft">Ny opgave</h2>
+      )}
+      <div className={cn("grid gap-4 sm:grid-cols-2", !isModal && "mt-4")}>
         <label className="flex flex-col gap-1 font-sans text-[12px] text-fg-muted">
           <span>Titel *</span>
           <input
