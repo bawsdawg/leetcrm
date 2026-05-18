@@ -19,7 +19,7 @@ export function ContractDetailTermsCard({ contract }) {
       <div className="mt-5 grid gap-8 lg:grid-cols-2">
         <dl className="grid gap-x-8 gap-y-4 font-mono text-[11px] text-fg-muted sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <dt className="text-fg-soft">Kontrakt-id (mock)</dt>
+            <dt className="text-fg-soft">Kontrakt-id</dt>
             <dd className="mt-1 font-mono text-[13px] text-fg">{contract.id}</dd>
           </div>
           <div>

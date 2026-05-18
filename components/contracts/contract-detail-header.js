@@ -4,7 +4,6 @@ import Link from "next/link";
 
 import { HealthChip } from "@/components/crm/health-chip";
 import { StatusChip } from "@/components/crm/status-chip";
-import { PulseIconDownload } from "@/components/pulse/pulse-icons";
 import { CONTRACT_DEMO_REF_DATE } from "@/lib/crm/contract-utils";
 import { routes } from "@/config/routes";
 import { cn } from "@/lib/utils";
@@ -23,17 +22,26 @@ import { cn } from "@/lib/utils";
  *   owner: { name: string; role: string; avatar: string; hue: number } | null;
  *   daysUntilRenewal: number;
  *   industry?: string;
+ *   renewalReferenceIso?: string;
+ *   trailing?: import('react').ReactNode;
  * }} props
  */
-export function ContractDetailHeader({ contract, owner, daysUntilRenewal, industry }) {
+export function ContractDetailHeader({
+  contract,
+  owner,
+  daysUntilRenewal,
+  industry,
+  renewalReferenceIso = CONTRACT_DEMO_REF_DATE,
+  trailing,
+}) {
   const countdown =
     contract.accountStatus !== "active"
       ? `Status ${contract.accountStatus}. Kalenderafstand til fornyelsesdato: ${daysUntilRenewal} d (${daysUntilRenewal < 0 ? "papir er overskredet" : " stadig aktiv dato på kontrakten"}).`
       : daysUntilRenewal < 0
-        ? `Fornyelse overskredet med ${Math.abs(daysUntilRenewal)} d vs. mock-ref. ${CONTRACT_DEMO_REF_DATE}`
+        ? `Fornyelse overskredet med ${Math.abs(daysUntilRenewal)} d vs. reference ${renewalReferenceIso}`
         : daysUntilRenewal === 0
-          ? "Fornyelse i dag (mock-calender)"
-          : `Ca. ${daysUntilRenewal} d til fornyelse (mock-ref. ${CONTRACT_DEMO_REF_DATE})`;
+          ? "Fornyelse i dag "
+          : `Ca. ${daysUntilRenewal} d til fornyelse (reference ${renewalReferenceIso})`;
 
   return (
     <>
@@ -74,7 +82,7 @@ export function ContractDetailHeader({ contract, owner, daysUntilRenewal, indust
               {owner ? (
                 <>
                   {" "}
-                  · Contract owner:{" "}
+                  · Ansvarlig:{" "}
                   <span className="text-fg">{owner.name}</span>
                   <span className="text-fg-muted"> ({owner.role})</span>
                 </>
@@ -87,14 +95,7 @@ export function ContractDetailHeader({ contract, owner, daysUntilRenewal, indust
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className="inline-flex h-[26px] items-center gap-1.5 rounded-md border border-border bg-surface-muted px-3 font-sans text-[11px] font-medium text-fg-muted transition-colors hover:border-agency-brand-border hover:bg-agency-brand-soft hover:text-agency-brand"
-          >
-            <PulseIconDownload size={12} /> Eksport PDF
-          </button>
-        </div>
+        <div className="flex flex-wrap items-center gap-2 md:justify-end">{trailing}</div>
       </header>
     </>
   );

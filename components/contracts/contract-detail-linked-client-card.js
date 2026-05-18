@@ -4,7 +4,7 @@ import { CrmAvatar } from "@/components/crm/crm-avatar";
 import { HealthChip } from "@/components/crm/health-chip";
 import { StatusChip } from "@/components/crm/status-chip";
 import { routes } from "@/config/routes";
-import { contractDaysUntilRenewal } from "@/lib/crm/contract-utils";
+import { CONTRACT_DEMO_REF_DATE, contractDaysUntilRenewal } from "@/lib/crm/contract-utils";
 import { formatCurrencyCompact, formatIsoDateDa, formatPercent } from "@/lib/crm/format-da";
 import { TEAM } from "@/lib/crm/static-data";
 import { cn } from "@/lib/utils";
@@ -13,9 +13,14 @@ import { cn } from "@/lib/utils";
  * @param {{
  *   client: import('@/lib/crm/static-data').CLIENTS[number];
  *   contract: import('@/lib/crm/static-data').CONTRACTS[number];
+ *   renewalReferenceIso?: string;
  * }} props
  */
-export function ContractDetailLinkedClientCard({ client, contract }) {
+export function ContractDetailLinkedClientCard({
+  client,
+  contract,
+  renewalReferenceIso = CONTRACT_DEMO_REF_DATE,
+}) {
   const owner = TEAM.find((t) => t.id === client.owner);
   const util = client.hoursBudget > 0 ? client.hoursThisMonth / client.hoursBudget : 0;
 
@@ -24,7 +29,9 @@ export function ContractDetailLinkedClientCard({ client, contract }) {
     contract.monthlyValue === client.retainer;
 
   const renewalDelta =
-    contract.accountStatus === "active" ? contractDaysUntilRenewal(contract.renewalAt) : null;
+    contract.accountStatus === "active"
+      ? contractDaysUntilRenewal(contract.renewalAt, renewalReferenceIso)
+      : null;
 
   return (
     <div className="rounded-2xl border border-border bg-surface-card p-4 shadow-inset-card md:p-5">
@@ -106,7 +113,9 @@ export function ContractDetailLinkedClientCard({ client, contract }) {
           <dd className="font-mono text-[11px] tabular-nums text-fg">
             {formatIsoDateDa(client.renewalAt)}
             {renewalDelta != null ? (
-              <span className="mt-1 block text-[10px] text-fg-quiet">{renewalDelta} d fra demo-ref.</span>
+              <span className="mt-1 block text-[10px] text-fg-quiet">
+                {renewalDelta} d vs. kontraktreference {renewalReferenceIso}
+              </span>
             ) : (
               <span className="mt-1 block text-[10px] text-fg-quiet">Ikke aktiv fornyelsestæller</span>
             )}

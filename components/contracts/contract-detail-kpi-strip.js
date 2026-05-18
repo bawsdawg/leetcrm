@@ -1,14 +1,33 @@
 import { PulseKpiCard } from "@/components/pulse/pulse-kpi-card";
-import { contractDaysUntilRenewal, CONTRACT_DEMO_REF_DATE } from "@/lib/crm/contract-utils";
+import { contractDaysUntilRenewal } from "@/lib/crm/contract-utils";
 import { formatCurrencyCompact } from "@/lib/crm/format-da";
 
 /**
- * @param {{ contract: import('@/lib/crm/static-data').CONTRACTS[number] }} props
+ * @param {{
+ *   contract: {
+ *     monthlyValue: number;
+ *     currency: string;
+ *     renewalAt: string;
+ *     accountStatus: 'active' | 'paused' | 'inactive';
+ *     noticeDays: number;
+ *   };
+ *   renewalReferenceIso: string;
+ *   referenceChipLabel?: string;
+ *   referenceChipValue?: string;
+ * }} props
  */
-export function ContractDetailKpiStrip({ contract }) {
+export function ContractDetailKpiStrip({
+  contract,
+  renewalReferenceIso,
+  referenceChipLabel,
+  referenceChipValue,
+}) {
+  const label = referenceChipLabel ?? "Kalender-reference";
+  const valueChip = referenceChipValue ?? renewalReferenceIso;
+
   const days =
     contract.accountStatus === "active"
-      ? contractDaysUntilRenewal(contract.renewalAt)
+      ? contractDaysUntilRenewal(contract.renewalAt, renewalReferenceIso)
       : null;
 
   const renewalTone =
@@ -46,7 +65,7 @@ export function ContractDetailKpiStrip({ contract }) {
         value={`${contract.noticeDays} d`}
         tone="warn"
       />
-      <PulseKpiCard label="Mock-reference" value={CONTRACT_DEMO_REF_DATE} tone="ok" />
+      <PulseKpiCard label={label} value={valueChip} tone="ok" />
     </section>
   );
 }

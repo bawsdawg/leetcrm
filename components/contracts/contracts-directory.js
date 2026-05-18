@@ -16,7 +16,7 @@ import {
 } from "@/components/pulse/pulse-icons";
 import { PulseSegmentedControl } from "@/components/pulse/pulse-segmented-control";
 import { routes } from "@/config/routes";
-import { contractDaysUntilRenewal, contractNeedsRenewalSoon } from "@/lib/crm/contract-utils";
+import { CONTRACT_DEMO_REF_DATE, contractDaysUntilRenewal, contractNeedsRenewalSoon } from "@/lib/crm/contract-utils";
 import { formatCurrencyCompact, formatIsoDateDa } from "@/lib/crm/format-da";
 import { CONTRACTS, TEAM } from "@/lib/crm/static-data";
 import { cn } from "@/lib/utils";
@@ -26,26 +26,49 @@ const GRID =
 
 /**
  * @param {{
+ *   contracts?: Array<{
+ *     id: string;
+ *     clientName: string;
+ *     kind: string;
+ *     monthlyValue: number;
+ *     currency: string;
+ *     startedAt: string;
+ *     renewalAt: string;
+ *     accountStatus: string;
+ *     health: string;
+ *     ownerId: string;
+ *     clientLogo: string;
+ *     clientHue: number;
+ *     noticeDays: number;
+ *   }>;
+ *   team?: Array<{ id: string; avatar: string; hue: number; name: string }>;
+ *   renewalReferenceIso?: string;
  *   headingId?: string;
  *   toolbarTitle?: string;
  * }} props
  */
 export function ContractsDirectory({
+  contracts,
+  team,
+  renewalReferenceIso = CONTRACT_DEMO_REF_DATE,
   headingId = "contracts-directory-heading",
   toolbarTitle = "Alle kontrakter",
 }) {
+  const roster = contracts ?? CONTRACTS;
+  const memberRoster = team ?? TEAM;
+
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState("name");
   const [density, setDensity] = useState("list");
 
   const renewalCount = useMemo(
-    () => CONTRACTS.filter((c) => contractNeedsRenewalSoon(c)).length,
-    [],
+    () => roster.filter((c) => contractNeedsRenewalSoon(c, 90, renewalReferenceIso)).length,
+    [renewalReferenceIso, roster],
   );
 
   const filtered = useMemo(() => {
-    const list = CONTRACTS.filter((c) => {
+    const list = roster.filter((c) => {
       const ql = q.trim().toLowerCase();
       if (
         ql &&
@@ -55,7 +78,7 @@ export function ContractsDirectory({
         return false;
       }
       if (filter === "active" && c.accountStatus !== "active") return false;
-      if (filter === "renewal" && !contractNeedsRenewalSoon(c)) return false;
+      if (filter === "renewal" && !contractNeedsRenewalSoon(c, 90, renewalReferenceIso)) return false;
       if (filter === "paused" && c.accountStatus !== "paused") return false;
       return true;
     });
@@ -68,7 +91,7 @@ export function ContractsDirectory({
     });
 
     return list;
-  }, [q, filter, sort]);
+  }, [q, filter, sort, renewalReferenceIso, roster]);
 
   return (
     <section
@@ -80,7 +103,7 @@ export function ContractsDirectory({
           {toolbarTitle}
         </h3>
         <span className="inline-flex h-[22px] items-center rounded-full border border-agency-brand-border bg-agency-brand-soft px-2 font-mono text-[11px] font-medium tabular-nums text-agency-brand">
-          {filtered.length} af {CONTRACTS.length}
+          {filtered.length} af {roster.length}
         </span>
 
         <div className="flex min-w-0 flex-1 flex-col gap-2 md:ml-auto md:flex-row md:items-center md:justify-end">
@@ -110,13 +133,13 @@ export function ContractsDirectory({
               {
                 id: "active",
                 label: "Aktive",
-                count: CONTRACTS.filter((c) => c.accountStatus === "active").length,
+                count: roster.filter((c) => c.accountStatus === "active").length,
               },
               { id: "renewal", label: "Fornyelse", count: renewalCount },
               {
                 id: "paused",
                 label: "Pause",
-                count: CONTRACTS.filter((c) => c.accountStatus === "paused").length,
+                count: roster.filter((c) => c.accountStatus === "paused").length,
               },
             ]}
           />
@@ -136,7 +159,7 @@ export function ContractsDirectory({
       {density === "cards" ? (
         <div className="grid gap-3 p-3 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] md:p-4">
           {filtered.map((row) => (
-            <ContractGridCard key={row.id} row={row} />
+            <ContractGridCard key={row.id} row={row} renewalReferenceIso={renewalReferenceIso} />
           ))}
         </div>
       ) : (
@@ -179,8 +202,8 @@ export function ContractsDirectory({
             </div>
 
             {filtered.map((row, i) => {
-              const owner = TEAM.find((t) => t.id === row.ownerId);
-              const days = contractDaysUntilRenewal(row.renewalAt);
+              const owner = memberRoster.find((t) => t.id === row.ownerId);
+              const days = contractDaysUntilRenewal(row.renewalAt, renewalReferenceIso);
 
               return (
                 <Link

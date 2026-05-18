@@ -4,37 +4,38 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import {
-  CLIENT_DETAIL_TAB_DEFS,
-  ClientDetailTabbedBody,
-} from "@/components/clients/client-detail-tabbed-body";
-import { ClientDetailHeader } from "@/components/clients/client-detail-header";
+  CONTRACT_DETAIL_TAB_IDS,
+  ContractDetailTabbedBody,
+} from "@/components/contracts/contract-detail-tabbed-body";
+import { ContractDetailHeader } from "@/components/contracts/contract-detail-header";
 import { ReportPeriodPicker } from "@/components/crm/report-period-picker";
 import { useDataSource } from "@/components/crm/use-data-source";
+import { contractDaysUntilRenewal } from "@/lib/crm/contract-utils";
 import { routes } from "@/config/routes";
 import {
+  formatReportPeriodSubtitle,
+  getCurrentReportPeriod,
+  lastCalendarDayIsoOfReportMonth,
+  normalizeReportPeriod,
+} from "@/lib/crm/report-period";
+import {
   CLIENTS,
+  CONTRACT_REVISION_LOG,
   CONTRACTS,
-  NOTES_BY_CLIENT,
   RETAINER_HISTORY,
   SMART_ALERTS,
   TASKS,
   TEAM,
 } from "@/lib/crm/static-data";
-import {
-  formatReportPeriodSubtitle,
-  getCurrentReportPeriod,
-  normalizeReportPeriod,
-} from "@/lib/crm/report-period";
 import { cn } from "@/lib/utils";
 
 /**
- * @param {{ clientSlug: string }} props
+ * @param {{ contractId: string }} props
  */
-export function ClientDetailShell({ clientSlug }) {
+export function ContractDetailShell({ contractId }) {
   const dataSource = useDataSource();
   const [period, setPeriod] = useState(() => getCurrentReportPeriod());
-  const [detailTab, setDetailTab] = useState(CLIENT_DETAIL_TAB_DEFS[0].id);
-
+  const [detailTab, setDetailTab] = useState(CONTRACT_DETAIL_TAB_IDS[0]);
   const [remote, setRemote] = useState(/** @type {Record<string, unknown> | null} */ (null));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(/** @type {string | null} */ (null));
@@ -53,18 +54,18 @@ export function ClientDetailShell({ clientSlug }) {
         year: String(p.year),
         month: String(p.month),
       });
-      const res = await fetch(`/api/clients/${encodeURIComponent(clientSlug)}?${qs}`, {
+      const res = await fetch(`/api/contracts/${encodeURIComponent(contractId)}?${qs}`, {
         cache: "no-store",
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error ?? "Kunne ikke hente kunde");
+      if (!res.ok) throw new Error(data?.error ?? "Kunne ikke hente kontrakt");
       setRemote(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Fejl");
     } finally {
       setLoading(false);
     }
-  }, [clientSlug, period]);
+  }, [contractId, period]);
 
   useEffect(() => {
     if (dataSource !== "database") return;
@@ -73,44 +74,53 @@ export function ClientDetailShell({ clientSlug }) {
     });
   }, [dataSource, loadRemote]);
 
-  const demoClient = CLIENTS.find((c) => c.id === clientSlug);
+  const demoCtr = CONTRACTS.find((c) => c.id === contractId);
+  const renewalRefDemo = lastCalendarDayIsoOfReportMonth(period.year, period.month);
 
-  if (dataSource === "demo" && !demoClient) {
+  if (dataSource === "demo" && !demoCtr) {
     return (
       <div className="space-y-4">
         <p className="font-sans text-[13px] text-fg-muted">
-          Demo har ingen kunde med id <span className="font-mono text-fg">{clientSlug}</span>.{" "}
-          <Link href={routes.clients} className="text-agency-brand hover:underline">
-            Tilbage til Kunder
+          Demo har ingen kontrakt med id <span className="font-mono text-fg">{contractId}</span>.{" "}
+          <Link href={routes.contracts} className="text-agency-brand hover:underline">
+            Tilbage til Kontrakter
           </Link>
           {" · "}
-          Har du åbnet en slug fra databasen? Skift til{" "}
+          Har du åbnet en nøgle fra databasen? Skift til{" "}
           <span className="font-medium text-fg-muted">MongoDB under Indstillinger → Datakilde</span>.
         </p>
       </div>
     );
   }
 
-  if (dataSource === "demo" && demoClient) {
-    const owner = TEAM.find((t) => t.id === demoClient.owner);
-    const notes = NOTES_BY_CLIENT[clientSlug] ?? [];
-    const contract = CONTRACTS.find((row) => row.clientId === clientSlug) ?? null;
-    const retainerHistory = RETAINER_HISTORY[clientSlug] ?? [];
-    const clientTasks = TASKS.filter((t) => t.clientId === clientSlug);
+  if (dataSource === "demo" && demoCtr) {
+    const client = CLIENTS.find((c) => c.id === demoCtr.clientId);
+    if (!client) {
+      return (
+        <p className="font-sans text-[13px] text-fg-muted">
+          Mangler tilknyttet kunde i mock. <Link href={routes.contracts}>Tilbage</Link>
+        </p>
+      );
+    }
+
+    const owner = TEAM.find((t) => t.id === demoCtr.ownerId);
+    const revisions = CONTRACT_REVISION_LOG[demoCtr.id] ?? [];
+    const clientTasks = TASKS.filter((t) => t.clientId === demoCtr.clientId);
+    const retainerHist = RETAINER_HISTORY[demoCtr.clientId] ?? [];
+    const daysUntilRenewal = contractDaysUntilRenewal(demoCtr.renewalAt, renewalRefDemo);
     const subtitle = formatReportPeriodSubtitle(period.year, period.month);
 
     return (
       <div className="flex flex-col gap-[length:var(--ds-studio-stack)]">
-        <ClientDetailHeader
-          client={{
-            id: demoClient.id,
-            name: demoClient.name,
-            industry: demoClient.industry,
-            logo: demoClient.logo,
-            hue: demoClient.hue,
-            status: demoClient.status,
-            health: demoClient.health,
-            lastActivity: demoClient.lastActivity,
+        <ContractDetailHeader
+          contract={{
+            id: demoCtr.id,
+            kind: demoCtr.kind,
+            clientName: demoCtr.clientName,
+            clientLogo: demoCtr.clientLogo,
+            clientHue: demoCtr.clientHue,
+            accountStatus: demoCtr.accountStatus,
+            health: demoCtr.health,
           }}
           owner={
             owner
@@ -122,6 +132,9 @@ export function ClientDetailShell({ clientSlug }) {
                 }
               : null
           }
+          daysUntilRenewal={daysUntilRenewal}
+          industry={client.industry}
+          renewalReferenceIso={renewalRefDemo}
           trailing={
             <div className="flex flex-col items-end gap-1">
               <ReportPeriodPicker year={period.year} month={period.month} onChange={handlePeriodChange} />
@@ -132,31 +145,36 @@ export function ClientDetailShell({ clientSlug }) {
           }
         />
 
-        <ClientDetailTabbedBody
+        <ContractDetailTabbedBody
           tab={detailTab}
           onTabChange={setDetailTab}
-          client={demoClient}
-          contract={contract}
-          retainerHistory={retainerHistory}
-          alerts={SMART_ALERTS}
-          notes={notes}
+          contract={demoCtr}
+          client={client}
+          renewalReferenceIso={renewalRefDemo}
+          referenceChipLabel="Periodens slutdato"
+          referenceChipValue={renewalRefDemo}
+          retainerHistory={retainerHist}
+          revisionEntries={revisions}
           tasks={clientTasks}
           tasksSourceLabel="mock TASKS"
-          kpiTimerLabel="Timer denne md"
+          alerts={SMART_ALERTS}
         />
 
         <p className="font-sans text-[12px] text-fg-quiet">
-          Kundeprofil fra <span className="font-mono text-[11px] text-fg-muted">lib/crm/static-data.js</span> — skift
-          datakilde under <span className="font-medium text-fg-muted">Indstillinger → Datakilde</span> for live
-          MongoDB-profil.
+          Datakilde: <span className="text-fg-muted">Demo (`lib/crm/static-data.js`)</span>
+          {" · "}
+          Skift under <span className="font-medium text-fg-muted">Indstillinger → Datakilde</span> for MongoDB.
         </p>
       </div>
     );
   }
 
-  if (dataSource === "database" && remote && typeof remote === "object" && remote.client) {
+  if (dataSource === "database" && remote && typeof remote === "object" && remote.contract && remote.client) {
+    /** @type {import('@/lib/crm/static-data').CONTRACTS[number]} */
+    const ctr = /** @type {import('@/lib/crm/static-data').CONTRACTS[number]} */ (remote.contract);
     /** @type {import('@/lib/crm/static-data').CLIENTS[number]} */
-    const c = /** @type {import('@/lib/crm/static-data').CLIENTS[number]} */ (remote.client);
+    const client = /** @type {import('@/lib/crm/static-data').CLIENTS[number]} */ (remote.client);
+    const renewalRef = String(remote.renewalReferenceIso ?? lastCalendarDayIsoOfReportMonth(period.year, period.month));
     const subtitle = formatReportPeriodSubtitle(period.year, period.month);
 
     /** @type {import('@/lib/crm/pulse-types').PulseTeamMember | null} */
@@ -165,11 +183,10 @@ export function ClientDetailShell({ clientSlug }) {
         ? /** @type {import('@/lib/crm/pulse-types').PulseTeamMember} */ (remote.owner)
         : null;
 
+    const daysUntilRenewal = contractDaysUntilRenewal(ctr.renewalAt, renewalRef);
+
     const periodLabel =
-      remote.period &&
-      typeof remote.period === "object" &&
-      remote.period !== null &&
-      "label" in remote.period
+      remote.period && typeof remote.period === "object" && remote.period !== null && "label" in remote.period
         ? String(/** @type {{ label?: string }} */ (remote.period).label)
         : subtitle;
 
@@ -186,16 +203,15 @@ export function ClientDetailShell({ clientSlug }) {
           </p>
         ) : null}
 
-        <ClientDetailHeader
-          client={{
-            id: c.id,
-            name: c.name,
-            industry: c.industry,
-            logo: c.logo,
-            hue: c.hue,
-            status: /** @type {'active'|'paused'|'inactive'} */ (c.status),
-            health: c.health,
-            lastActivity: c.lastActivity,
+        <ContractDetailHeader
+          contract={{
+            id: ctr.id,
+            kind: ctr.kind,
+            clientName: ctr.clientName,
+            clientLogo: ctr.clientLogo,
+            clientHue: ctr.clientHue,
+            accountStatus: ctr.accountStatus,
+            health: ctr.health,
           }}
           owner={
             owner
@@ -207,6 +223,9 @@ export function ClientDetailShell({ clientSlug }) {
                 }
               : null
           }
+          daysUntilRenewal={daysUntilRenewal}
+          industry={client.industry}
+          renewalReferenceIso={renewalRef}
           trailing={
             <div className="flex flex-col items-end gap-1">
               <ReportPeriodPicker year={period.year} month={period.month} onChange={handlePeriodChange} />
@@ -218,57 +237,55 @@ export function ClientDetailShell({ clientSlug }) {
           }
         />
 
-        <ClientDetailTabbedBody
+        <ContractDetailTabbedBody
           tab={detailTab}
           onTabChange={setDetailTab}
-          client={c}
-          contract={remote.contract ?? null}
-          contractDetailHref={remote.contract ? null : undefined}
+          contract={ctr}
+          client={client}
+          renewalReferenceIso={renewalRef}
+          referenceChipLabel={typeof remote.referenceChipLabel === "string" ? remote.referenceChipLabel : undefined}
+          referenceChipValue={typeof remote.referenceChipValue === "string" ? remote.referenceChipValue : undefined}
           retainerHistory={Array.isArray(remote.retainerHistory) ? remote.retainerHistory : []}
-          alerts={Array.isArray(remote.alerts) ? remote.alerts : []}
-          notes={Array.isArray(remote.notes) ? remote.notes : []}
-          notesTeamMembers={Array.isArray(remote.team) ? remote.team : undefined}
+          revisionEntries={Array.isArray(remote.revisions) ? remote.revisions : []}
           tasks={Array.isArray(remote.tasks) ? remote.tasks : []}
           tasksSourceLabel="MongoDB"
-          kpiTimerLabel={
-            typeof remote.kpiTimerLabel === "string" ? remote.kpiTimerLabel : "Timer i perioden"
-          }
+          alerts={Array.isArray(remote.alerts) ? remote.alerts : []}
         />
 
         <p className="font-sans text-[12px] text-fg-quiet">
-          Kundeprofil fra <span className="text-fg-muted">MongoDB</span> (bilable tid i kolonnen matcher den valgte
-          måned). <span className="font-mono text-[11px] text-fg-muted">{periodLabel}</span>
+          Datakilde: <span className="text-fg-muted">MongoDB</span> — bilable timer og KPI i overblik matcher{" "}
+          <span className="font-mono text-[11px] text-fg-muted">{periodLabel}</span>
           {" · "}
-          Kontrakter under <span className="font-mono text-[11px] text-fg-muted">/contracts</span> følger den samme
-          datakilde.
+          Skift under <span className="font-medium text-fg-muted">Indstillinger → Datakilde</span>.
         </p>
       </div>
     );
   }
 
-  if (dataSource === "database" && error && !remote?.client) {
+  if (dataSource === "database" && error && !remote?.contract) {
     return (
       <div className="space-y-4">
-        <ClientDetailHeader
-          client={{
-            id: clientSlug,
-            name: "Kunde",
-            industry: "",
-            logo: "?",
-            hue: 220,
-            status: "active",
+        <ContractDetailHeader
+          contract={{
+            id: contractId,
+            kind: "—",
+            clientName: "Kontrakt",
+            clientLogo: "?",
+            clientHue: 220,
+            accountStatus: "paused",
             health: "ok",
-            lastActivity: "—",
           }}
           owner={null}
+          daysUntilRenewal={0}
+          renewalReferenceIso={lastCalendarDayIsoOfReportMonth(period.year, period.month)}
           trailing={
             <ReportPeriodPicker year={period.year} month={period.month} onChange={handlePeriodChange} />
           }
         />
         <p className="rounded-lg border border-agency-bad-border bg-agency-bad-soft px-4 py-3 font-sans text-[13px] text-agency-bad">
           {error}{" "}
-          <Link href={routes.clients} className="font-medium underline">
-            Tilbage til Kunder
+          <Link href={routes.contracts} className="font-medium underline">
+            Tilbage til Kontrakter
           </Link>
         </p>
       </div>
@@ -278,23 +295,25 @@ export function ClientDetailShell({ clientSlug }) {
   if (dataSource === "database") {
     return (
       <div className="space-y-4">
-        <ClientDetailHeader
-          client={{
-            id: clientSlug,
-            name: "Indlæser…",
-            industry: "",
-            logo: "?",
-            hue: 220,
-            status: "active",
+        <ContractDetailHeader
+          contract={{
+            id: contractId,
+            kind: "—",
+            clientName: "Indlæser…",
+            clientLogo: "?",
+            clientHue: 220,
+            accountStatus: "active",
             health: "ok",
-            lastActivity: "—",
           }}
           owner={null}
+          daysUntilRenewal={0}
+          renewalReferenceIso={lastCalendarDayIsoOfReportMonth(period.year, period.month)}
           trailing={
             <ReportPeriodPicker year={period.year} month={period.month} onChange={handlePeriodChange} />
           }
         />
         <div className="space-y-3">
+          <div className="h-8 animate-pulse rounded-lg bg-skeleton" />
           <div className="h-24 animate-pulse rounded-2xl bg-skeleton" />
           <div className="h-40 animate-pulse rounded-2xl bg-skeleton" />
         </div>

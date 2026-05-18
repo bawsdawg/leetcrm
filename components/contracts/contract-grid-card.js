@@ -3,7 +3,7 @@ import Link from "next/link";
 import { HealthChip } from "@/components/crm/health-chip";
 import { StatusChip } from "@/components/crm/status-chip";
 import { routes } from "@/config/routes";
-import { contractDaysUntilRenewal } from "@/lib/crm/contract-utils";
+import { CONTRACT_DEMO_REF_DATE, contractDaysUntilRenewal } from "@/lib/crm/contract-utils";
 import { formatCurrencyCompact, formatIsoDateDa } from "@/lib/crm/format-da";
 import { cn } from "@/lib/utils";
 
@@ -22,10 +22,10 @@ import { cn } from "@/lib/utils";
  *   accountStatus: 'active' | 'paused' | 'inactive';
  *   health: 'ok' | 'warn' | 'bad';
  *   noticeDays: number;
- * }}} props
+ * }; renewalReferenceIso?: string }} props
  */
-export function ContractGridCard({ row }) {
-  const days = contractDaysUntilRenewal(row.renewalAt);
+export function ContractGridCard({ row, renewalReferenceIso = CONTRACT_DEMO_REF_DATE }) {
+  const days = contractDaysUntilRenewal(row.renewalAt, renewalReferenceIso);
 
   return (
     <Link
