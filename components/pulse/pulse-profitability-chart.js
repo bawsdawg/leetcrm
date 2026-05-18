@@ -10,7 +10,7 @@ import { usePulseData } from "@/components/pulse/pulse-data-context";
 import { cn } from "@/lib/utils";
 
 export function PulseProfitabilityChart() {
-  const { deptPerformance: rows, departments: DEPARTMENTS } = usePulseData();
+  const { deptPerformance: rows, departments: DEPARTMENTS, period } = usePulseData();
   const maxRev = Math.max(...rows.map((r) => r.revenue), 1);
   const overBudgetDept = rows.find((r) => r.util > 1);
 
@@ -22,7 +22,7 @@ export function PulseProfitabilityChart() {
       <div id="pulse-profit-heading">
         <PulseCardHeader
           title="Rentabilitet per afdeling"
-          sub="Faktureret retainer-værdi vs. leverede timer (april 2026)"
+          sub={`Faktureret retainer-værdi vs. leverede timer (${period.label.toLowerCase()})`}
         />
       </div>
 

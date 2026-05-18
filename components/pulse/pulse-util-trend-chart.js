@@ -2,7 +2,8 @@ import { PulseCardHeader } from "@/components/pulse/pulse-card-header";
 import { usePulseData } from "@/components/pulse/pulse-data-context";
 
 export function PulseUtilTrendChart() {
-  const { utilTrend: data } = usePulseData();
+  const { utilTrend: data, period } = usePulseData();
+  const days = data.length;
   const maxVal = Math.max(...data.flatMap((d) => [d.billable + d.overhead]), 1) * 1.1;
 
   const w = 560;
@@ -18,8 +19,8 @@ export function PulseUtilTrendChart() {
     >
       <div id="pulse-trend-heading">
         <PulseCardHeader
-          title="Tid fordelt — 30 dage"
-          sub="Billable vs. overhead / non-billable (timer/dag, bureauet samlet)"
+          title={`Tid fordelt — ${days} dage`}
+          sub={`Billable vs. overhead (${period.label.toLowerCase()}, timer/dag)`}
         />
       </div>
 
