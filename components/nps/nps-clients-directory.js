@@ -15,7 +15,7 @@ import { routes } from "@/config/routes";
 import { HealthChip } from "@/components/crm/health-chip";
 import { StatusChip } from "@/components/crm/status-chip";
 import { NPS_INTERVAL_DA } from "@/lib/crm/nps-intervals-da";
-import { npsDashboardClients, npsLatestEntry, npsPreviousEntry } from "@/lib/crm/nps-utils";
+import { npsLatestEntry, npsPreviousEntry } from "@/lib/crm/nps-utils";
 import { cn } from "@/lib/utils";
 
 const GRID =
@@ -29,16 +29,19 @@ function scoreToneClass(s) {
 }
 
 /**
- * @param {{ headingId?: string }} props
+ * @param {{
+ *   clients: import('@/lib/crm/static-data').CLIENTS;
+ *   headingId?: string;
+ * }} props
  */
-export function NpsClientsDirectory({ headingId = "nps-clients-directory" }) {
+export function NpsClientsDirectory({ clients, headingId = "nps-clients-directory" }) {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState("score");
   const [density, setDensity] = useState("list");
 
   const rows = useMemo(() => {
-    return npsDashboardClients().map((c) => {
+    return clients.map((c) => {
       const latest = npsLatestEntry(c);
       const prev = npsPreviousEntry(c);
       const delta = latest && prev ? latest.score - prev.score : null;
@@ -54,7 +57,7 @@ export function NpsClientsDirectory({ headingId = "nps-clients-directory" }) {
 
       return { client: c, latest, delta, spark, cadence, atRisk, improving, noData };
     });
-  }, []);
+  }, [clients]);
 
   const filtered = useMemo(() => {
     let list = rows.filter((r) => {

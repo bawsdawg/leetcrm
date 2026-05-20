@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
  *   responses: number;
  *   medianHoursToRespond: number;
  *   pulseAlertCount: number;
+ *   responseRateLabel?: string;
+ *   invitationsLabel?: string;
  * }} props
  */
 export function NpsSummaryStrip({
@@ -35,6 +37,8 @@ export function NpsSummaryStrip({
   responses,
   medianHoursToRespond,
   pulseAlertCount,
+  responseRateLabel = "Svarfrekvens (seneste mock-runde)",
+  invitationsLabel = "Invitationer sidste runde",
 }) {
   const delta = avgLatest != null && avgPrev != null ? avgLatest - avgPrev : null;
   const deltaTone =
@@ -79,8 +83,8 @@ export function NpsSummaryStrip({
         value={formatPercent(detractorRatio)}
         tone={detractorRatio > 0.15 ? "bad" : detractorRatio > 0 ? "warn" : "ok"}
       />
-      <PulseKpiCard label="Svarfrekvens (seneste mock-runde)" value={formatPercent(responseRate)} tone="brand" />
-      <PulseKpiCard label="Invitationer sidste runde" value={String(invitations)} tone="brand" />
+      <PulseKpiCard label={responseRateLabel} value={formatPercent(responseRate)} tone="brand" />
+      <PulseKpiCard label={invitationsLabel} value={String(invitations)} tone="brand" />
       <PulseKpiCard label="Svar modtaget" value={String(responses)} tone="ok" />
       <PulseKpiCard
         label="Median svartid"

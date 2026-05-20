@@ -1,16 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PulseIconChevronDown, PulseIconChevronRight } from "@/components/pulse/pulse-icons";
-import { NPS_TEMPLATES } from "@/lib/crm/static-data";
 import { cn } from "@/lib/utils";
 
 /**
- * @param {{ headingId?: string }} props
+ * @param {{
+ *   templates: { id: string; name: string; subject: string; body: string }[];
+ *   headingId?: string;
+ * }} props
  */
-export function NpsTemplatesDirectory({ headingId = "nps-templates-heading" }) {
-  const [openId, setOpenId] = useState(/** @type {string | null} */ ("default"));
+export function NpsTemplatesDirectory({ templates, headingId = "nps-templates-heading" }) {
+  const [openId, setOpenId] = useState(/** @type {string | null} */ (templates[0]?.id ?? null));
+
+  useEffect(() => {
+    if (!templates.length) {
+      setOpenId(null);
+      return;
+    }
+    setOpenId((prev) => (prev && templates.some((t) => t.id === prev) ? prev : templates[0].id));
+  }, [templates]);
+
+  if (!templates.length) {
+    return (
+      <section className="overflow-hidden rounded-2xl border border-border bg-surface-card shadow-inset-card">
+        <div className="border-b border-border px-3 py-3 md:px-4">
+          <h2 id={headingId} className="font-sans text-sm font-semibold text-fg">
+            E-mailskabeloner
+          </h2>
+          <p className="mt-1 font-sans text-[11px] text-fg-muted">
+            Ingen skabeloner i denne datakilde — seed eller opret i CRM (`NpsTemplate`).
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="overflow-hidden rounded-2xl border border-border bg-surface-card shadow-inset-card">
@@ -24,18 +49,18 @@ export function NpsTemplatesDirectory({ headingId = "nps-templates-heading" }) {
             <code className="font-mono text-[10px] text-fg-quiet">
               {'{{firstName}}'}, {'{{accountManager}}'}
             </code>{" "}
-            — sendes fra Resend-integration (demo).
+            — sendes fra Resend-integration i produktion.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <span className="rounded-md border border-border bg-surface-muted px-2 py-1 font-mono text-[10px] font-medium uppercase tracking-wide text-fg-muted">
-            3 varianter
+            {templates.length} variant{templates.length === 1 ? "" : "er"}
           </span>
           <button
             type="button"
             disabled
             className="inline-flex h-8 cursor-not-allowed items-center rounded-md border border-border bg-surface-muted px-3 font-sans text-[11px] font-medium text-fg-quiet opacity-60"
-            title="Demo — opret variant i produktion"
+            title="Opret via CRM (database)"
           >
             Ny skabelon +
           </button>
@@ -43,7 +68,7 @@ export function NpsTemplatesDirectory({ headingId = "nps-templates-heading" }) {
       </div>
 
       <ul className="divide-y divide-border-soft">
-        {NPS_TEMPLATES.map((t) => {
+        {templates.map((t) => {
           const isOpen = openId === t.id;
           return (
             <li key={t.id}>
@@ -65,7 +90,7 @@ export function NpsTemplatesDirectory({ headingId = "nps-templates-heading" }) {
                   </div>
                   <p className="mt-0.5 font-sans text-[12px] text-fg-muted">{t.subject}</p>
                   {isOpen ? (
-                    <pre className="mt-3 max-h-[240px] overflow-auto rounded-xl border border-border-soft bg-[#070707] p-3 font-mono text-[11px] leading-relaxed text-fg-muted whitespace-pre-wrap">
+                    <pre className="mt-3 max-h-[240px] overflow-auto rounded-xl border border-border-soft bg-surface-muted-strong p-3 font-mono text-[11px] leading-relaxed text-fg-muted whitespace-pre-wrap shadow-inset-card">
                       {t.body}
                     </pre>
                   ) : null}
@@ -76,7 +101,7 @@ export function NpsTemplatesDirectory({ headingId = "nps-templates-heading" }) {
                         disabled
                         className="rounded-md border border-agency-brand-border bg-agency-brand-soft px-3 py-1 font-sans text-[11px] font-medium text-agency-brand opacity-70"
                       >
-                        Send test (demo-låst)
+                        Send test (låst)
                       </button>
                       <button
                         type="button"
