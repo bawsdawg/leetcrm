@@ -17,9 +17,18 @@ import { cn } from "@/lib/utils";
  *   dailyTargetMinutes: number;
  *   periodCaption: string;
  *   periodSubtitle?: string;
+ *   selectedDayIso?: string;
+ *   onSelectDay?: (iso: string) => void;
  * }} props
  */
-export function TimeMonthCalendar({ cells, dailyTargetMinutes, periodCaption, periodSubtitle = "" }) {
+export function TimeMonthCalendar({
+  cells,
+  dailyTargetMinutes,
+  periodCaption,
+  periodSubtitle = "",
+  selectedDayIso = "",
+  onSelectDay,
+}) {
   const targetHours = dailyTargetMinutes / 60;
 
   return (
@@ -30,7 +39,8 @@ export function TimeMonthCalendar({ cells, dailyTargetMinutes, periodCaption, pe
             Månedskalender
           </h2>
           <p className="mt-1 max-w-[48ch] font-sans text-[11px] leading-snug text-fg-muted">
-            Registreret tid pr. dag mod mål {formatHoursDecimalDa(dailyTargetMinutes)} · weekend vises for kontekst.
+            Registreret tid pr. dag mod mål {formatHoursDecimalDa(dailyTargetMinutes)} · klik på en dag for at se{" "}
+            stemplerne.
           </p>
         </div>
         <div className="text-right">
@@ -62,14 +72,28 @@ export function TimeMonthCalendar({ cells, dailyTargetMinutes, periodCaption, pe
               const mins = typeof d.minutes === "number" ? d.minutes : 0;
               const weekend = Boolean(d.weekend);
               const hours = mins / 60;
+              const isSelected =
+                typeof selectedDayIso === "string" &&
+                selectedDayIso.length >= 10 &&
+                typeof iso === "string" &&
+                iso === selectedDayIso.trim().slice(0, 10);
               return (
-                <div
+                <button
+                  type="button"
                   key={d.key}
+                  aria-label={iso ? `Vælg dato ${formatIsoDayMonthDa(iso)}` : "Vælg dato"}
+                  aria-pressed={Boolean(isSelected)}
+                  onClick={() => {
+                    if (typeof iso === "string" && iso.length >= 10 && typeof onSelectDay === "function")
+                      onSelectDay(iso);
+                  }}
                   className={cn(
-                    "flex min-h-[88px] min-w-0 flex-col gap-1.5 rounded-lg border px-1.5 py-2 sm:min-h-[96px] sm:px-2 sm:py-2.5",
+                    "flex min-h-[88px] min-w-0 cursor-pointer flex-col gap-1.5 rounded-lg border px-1.5 py-2 text-left outline-none ring-offset-2 ring-offset-canvas transition-[box-shadow,border-color,background-color] sm:min-h-[96px] sm:px-2 sm:py-2.5",
+                    "hover:border-agency-brand-border hover:bg-agency-brand-soft/20 focus-visible:ring-2 focus-visible:ring-agency-brand",
                     d.isToday
                       ? "border-agency-brand-border bg-agency-brand-soft/35 shadow-[0_0_0_1px_color-mix(in_oklch,var(--agency-brand)_22%,transparent)]"
                       : "border-border-soft bg-surface-muted/35",
+                    isSelected && "shadow-[inset_0_0_0_2px_var(--agency-brand)]",
                     weekend && "opacity-65",
                   )}
                 >
@@ -84,8 +108,8 @@ export function TimeMonthCalendar({ cells, dailyTargetMinutes, periodCaption, pe
                   <p className="font-mono text-[11px] font-semibold tabular-nums leading-none text-fg sm:text-[12px]">
                     {formatHoursDecimalDa(mins)}
                   </p>
-                  <PulseUtilBar hours={hours} budget={targetHours} className="mt-auto" />
-                </div>
+                  <PulseUtilBar hours={hours} budget={targetHours} className="mt-auto pointer-events-none" />
+                </button>
               );
             })(),
         )}

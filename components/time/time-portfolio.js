@@ -13,6 +13,7 @@ import { TimeMonthCalendar } from "@/components/time/time-month-calendar";
 import { useDataSource } from "@/components/crm/use-data-source";
 import { routes } from "@/config/routes";
 import { getTimeEntriesDemoBundle } from "@/lib/crm/time-entries-demo-bundle";
+import { formatIsoWeekdayLongDa } from "@/lib/crm/format-da";
 import { formatReportPeriodSubtitle, getCurrentReportPeriod, normalizeReportPeriod } from "@/lib/crm/report-period";
 import { buildReportMonthCalendarCells, minutesPerUtcIsoDayFromWireEntries } from "@/lib/crm/time-utils";
 import { cn } from "@/lib/utils";
@@ -102,6 +103,8 @@ export function TimePortfolio() {
   const [createSubmitting, setCreateSubmitting] = useState(false);
   const [createError, setCreateError] = useState(/** @type {string | null} */ (null));
   const hasLoadedRef = useRef(false);
+  /** Manuel valg i månedskalenderen (`null` = brug autoprioritet ud fra måned/`todayKey`). */
+  const [pickedDayIso, setPickedDayIso] = useState(/** @type {string | null} */ (null));
 
   const openCreate = useCallback(() => {
     setCreateFormKey((n) => n + 1);
@@ -159,6 +162,10 @@ export function TimePortfolio() {
   }, [dataSource]);
 
   useEffect(() => {
+    setPickedDayIso(null);
+  }, [normalizedPeriod.year, normalizedPeriod.month, dataSource]);
+
+  useEffect(() => {
     queueMicrotask(() => {
       void load();
     });
@@ -176,6 +183,55 @@ export function TimePortfolio() {
 
   const todayKey =
     bundle && typeof bundle.todayKey === "string" ? bundle.todayKey.trim().slice(0, 10) : "";
+
+  const rangeFromIso =
+    bundle && typeof bundle.fromIso === "string" ? bundle.fromIso.trim().slice(0, 10) : "";
+  const rangeToIso =
+    bundle && typeof bundle.toIso === "string" ? bundle.toIso.trim().slice(0, 10) : "";
+
+  const stampListDayIso = useMemo(() => {
+    const pickRaw = pickedDayIso?.trim().slice(0, 10) ?? "";
+    if (
+      pickRaw.length >= 10 &&
+      rangeFromIso &&
+      rangeToIso &&
+      pickRaw >= rangeFromIso &&
+      pickRaw <= rangeToIso
+    )
+      return pickRaw;
+
+    if (
+      typeof todayKey === "string" &&
+      todayKey.length >= 10 &&
+      rangeFromIso &&
+      rangeToIso &&
+      todayKey >= rangeFromIso &&
+      todayKey <= rangeToIso
+    )
+      return todayKey;
+
+    if (typeof rangeFromIso === "string" && rangeFromIso.length >= 10) return rangeFromIso;
+
+    return todayKey.slice(0, 10);
+  }, [pickedDayIso, todayKey, rangeFromIso, rangeToIso]);
+
+  /** Poster for valgt kalenderdag (liste under månedskalenderen). */
+  const stampListEntries = useMemo(
+    () =>
+      stampListDayIso.length >= 10 ?
+        entriesAll.filter((e) =>
+          typeof e.workedAtIso === "string" ? e.workedAtIso.slice(0, 10) === stampListDayIso : false,
+        )
+      : [],
+
+    [entriesAll, stampListDayIso],
+  );
+
+  const stampsHeading = useMemo(() => {
+    if (!(typeof stampListDayIso === "string") || stampListDayIso.length < 10) return "Stempler i dag";
+    if (todayKey.length >= 10 && stampListDayIso === todayKey) return "Stempler i dag";
+    return `Stempler (${formatIsoWeekdayLongDa(stampListDayIso)})`;
+  }, [stampListDayIso, todayKey]);
 
   const todayEntries = useMemo(
     () =>
@@ -400,8 +456,14 @@ export function TimePortfolio() {
               dailyTargetMinutes={dailyTarget}
               periodCaption={calendarCaption || `Kalender`}
               periodSubtitle={subtitleForUi}
+              selectedDayIso={stampListDayIso}
+              onSelectDay={(iso) => setPickedDayIso(iso.trim().slice(0, 10))}
             />
-            <TimeEntriesDirectory entriesToday={todayEntries} todayTotalCount={todayEntries.length} />
+            <TimeEntriesDirectory
+              entriesToday={stampListEntries}
+              todayTotalCount={stampListEntries.length}
+              stampsHeading={stampsHeading}
+            />
           </div>
           <TimeQuickLogPanel
             dataSource={dataSource}

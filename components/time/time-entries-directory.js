@@ -33,12 +33,14 @@ function durNum(dur) {
  *   entriesToday?: Record<string, unknown>[];
  *   todayTotalCount?: number;
  *   headingId?: string;
+ *   stampsHeading?: string;
  * }} props
  */
 export function TimeEntriesDirectory({
   entriesToday = [],
   todayTotalCount,
   headingId = "time-entries-heading",
+  stampsHeading = "Stempler i dag",
 }) {
   const [q, setQ] = useState("");
   const [scope, setScope] = useState("all");
@@ -104,7 +106,7 @@ export function TimeEntriesDirectory({
     >
       <div className="flex flex-col gap-3 border-b border-border px-3 py-3 md:flex-row md:flex-wrap md:items-center md:gap-2 md:px-4">
         <h2 id={headingId} className="font-sans text-sm font-semibold text-fg">
-          Stempler i dag
+          {stampsHeading}
         </h2>
         <span className="inline-flex h-[22px] items-center rounded-full border border-agency-brand-border bg-agency-brand-soft px-2 font-mono text-[11px] font-medium tabular-nums text-agency-brand">
           {rows.length} af {Math.max(rows.length, totalShown)}
