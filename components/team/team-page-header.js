@@ -1,10 +1,39 @@
+"use client";
+
 import { IconUsers } from "@/components/crm/icons";
+import { ReportPeriodPicker } from "@/components/crm/report-period-picker";
 import { PulseIconDownload } from "@/components/pulse/pulse-icons";
 import { TEAM } from "@/lib/crm/static-data";
-import { TASK_DEMO_REF_DATE, TASK_DEMO_USER_ID } from "@/lib/crm/task-utils";
+import { formatReportPeriodSubtitle } from "@/lib/crm/report-period";
+import { TASK_DEMO_USER_ID } from "@/lib/crm/task-utils";
 
-export function TeamPageHeader() {
-  const meName = TEAM.find((m) => m.id === TASK_DEMO_USER_ID)?.name ?? "Medarbejder";
+/**
+ * @param {{
+ *   reportPeriod: { year: number; month: number };
+ *   onReportPeriodChange: (p: { year: number; month: number }) => void;
+ *   dataSource?: "demo" | "database";
+ *   mineLabel?: string | null;
+ *   refreshing?: boolean;
+ *   loading?: boolean;
+ * }} props
+ */
+export function TeamPageHeader({
+  reportPeriod,
+  onReportPeriodChange,
+  dataSource = "demo",
+  mineLabel = null,
+  refreshing = false,
+  loading = false,
+}) {
+  const demoFallbackName = TEAM.find((m) => m.id === TASK_DEMO_USER_ID)?.name ?? "Medarbejder";
+  const displayName =
+    typeof mineLabel === "string" && mineLabel.trim() ?
+      mineLabel.trim()
+    : dataSource === "demo" ?
+      demoFallbackName
+    : "Dig";
+
+  const subtitle = formatReportPeriodSubtitle(reportPeriod.year, reportPeriod.month);
 
   return (
     <div className="flex flex-col gap-4">
@@ -16,29 +45,41 @@ export function TeamPageHeader() {
           </p>
           <h1 className="font-sans text-[22px] font-semibold tracking-tight text-fg md:text-[22px]">Team</h1>
           <p className="mt-1 max-w-prose font-sans text-[13px] leading-snug text-fg-muted">
-            Komplet bureauhold med afdeling, kontrakteret tid og profiler koblet til åbne opgaver — mock-data i{" "}
-            <code className="font-mono text-[11px] text-fg-quiet">TEAM</code> (udskiftes med Mongo{" "}
-            <code className="font-mono text-[11px] text-fg-quiet">TeamMember</code> + evt. Auth-link).
+            <span className="capitalize">{subtitle}</span>
+            {" — "}
+            Bureauhold med disciplin, kontrakteret tid og belægning fra åbne board-opgaver (samme logik som Workload).
+            {dataSource === "demo" ?
+              <> Demonstrationsdata.</>
+            : <>
+                {" "}
+                <span className="font-semibold text-fg">MongoDB</span>
+                {refreshing ?
+                  <span className="font-mono text-[11px] text-fg-quiet"> Opdaterer…</span>
+                : null}
+              </>
+            }
             {" "}
-            Du vises som{" "}
-            <span className="font-semibold text-fg">{meName}</span>. Ref.{" "}
-            <span className="font-mono tabular-nums text-fg-quiet">{TASK_DEMO_REF_DATE}</span>.
+            Din række markeres som{" "}
+            <span className="font-semibold text-fg">{loading ? "\u2026" : displayName}</span>.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className="inline-flex h-[26px] items-center gap-1.5 rounded-md border border-border bg-surface-muted px-3 font-sans text-[11px] font-medium text-fg-muted transition-colors hover:border-agency-brand-border hover:bg-agency-brand-soft hover:text-agency-brand"
-          >
-            <PulseIconDownload size={12} /> Eksport
-          </button>
-          <button
-            type="button"
-            className="inline-flex h-[26px] items-center rounded-md border border-agency-brand-border bg-agency-brand-soft px-3 font-sans text-[11px] font-medium text-agency-brand transition-colors hover:bg-agency-brand/15"
-          >
-            Inviter
-          </button>
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-end">
+          <div className="flex flex-wrap items-center gap-2 md:justify-end">
+            <button
+              type="button"
+              className="inline-flex h-[26px] items-center gap-1.5 rounded-md border border-border bg-surface-muted px-3 font-sans text-[11px] font-medium text-fg-muted transition-colors hover:border-agency-brand-border hover:bg-agency-brand-soft hover:text-agency-brand"
+            >
+              <PulseIconDownload size={12} /> Eksport
+            </button>
+            <button
+              type="button"
+              className="inline-flex h-[26px] items-center rounded-md border border-agency-brand-border bg-agency-brand-soft px-3 font-sans text-[11px] font-medium text-agency-brand transition-colors hover:bg-agency-brand/15"
+            >
+              Inviter
+            </button>
+          </div>
+          <ReportPeriodPicker year={reportPeriod.year} month={reportPeriod.month} onChange={onReportPeriodChange} />
         </div>
       </header>
     </div>

@@ -8,10 +8,22 @@ import { taskIsOverdue } from "@/lib/crm/task-utils";
 import { cn } from "@/lib/utils";
 
 /**
- * Åbne opgaver på medarbejder (subset af `TASKS`).
- * @param {{ tasks: import('@/lib/crm/static-data').TASKS }} props
+ * Åbne opgaver på medarbejder — demo (`TASKS`) eller API (`tasksOpen` normaliseret til rækker med id/dueDate).
+ * @param {{
+ *   tasks: Array<{
+ *     id?: string;
+ *     key?: string;
+ *     title: string;
+ *     hint?: string;
+ *     status: string;
+ *     priority: string;
+ *     dueDate?: string;
+ *     clientName?: string;
+ *   }>;
+ *   dueRefIso?: string;
+ * }} props
  */
-export function TeamMemberOpenTasksCard({ tasks }) {
+export function TeamMemberOpenTasksCard({ tasks, dueRefIso }) {
   return (
     <section className="rounded-2xl border border-border bg-surface-card p-4 shadow-inset-card md:p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -25,11 +37,19 @@ export function TeamMemberOpenTasksCard({ tasks }) {
       ) : (
         <ul className="mt-4 flex flex-col divide-y divide-border-soft">
           {tasks.map((t) => {
-            const overdue = taskIsOverdue(t);
+            const taskId = typeof t.id === "string" && t.id ? t.id : typeof t.key === "string" ? t.key : t.title;
+            const dueForOverdue =
+              typeof t.dueDate === "string" && t.dueDate ?
+                t.dueDate.slice(0, 10)
+              : "";
+            const overdue = taskIsOverdue(
+              { status: t.status, dueDate: dueForOverdue },
+              dueRefIso ?? undefined,
+            );
             return (
-              <li key={t.id}>
+              <li key={taskId}>
                 <Link
-                  href={`${routes.tasks}/${t.id}`}
+                  href={`${routes.tasks}/${encodeURIComponent(taskId)}`}
                   className={cn(
                     "flex flex-col gap-2 py-3 first:pt-0 last:pb-0 transition-colors hover:bg-surface-muted/40 sm:flex-row sm:items-center sm:justify-between sm:gap-4",
                   )}
@@ -50,7 +70,7 @@ export function TeamMemberOpenTasksCard({ tasks }) {
                         overdue ? "font-semibold text-agency-bad" : "text-fg-quiet",
                       )}
                     >
-                      Forf. {formatIsoDateDa(t.dueDate)}
+                      Forf. {dueForOverdue ? formatIsoDateDa(dueForOverdue) : "—"}
                     </span>
                   </div>
                 </Link>

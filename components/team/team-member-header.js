@@ -6,11 +6,23 @@ import { DEPARTMENTS } from "@/lib/crm/static-data";
 
 /**
  * @param {{
- *   member: import('@/lib/crm/static-data').TEAM[number];
+ *   member:
+ *     | import('@/lib/crm/static-data').TEAM[number]
+ *     | {
+ *         id?: string;
+ *         name?: string;
+ *         role?: string;
+ *         dept?: string;
+ *         avatar?: string;
+ *         hue?: number;
+ *         weeklyHours?: number;
+ *         isMe?: boolean;
+ *       };
+ *   department?: { id: string; name: string; short: string } | null;
  * }} props
  */
-export function TeamMemberHeader({ member }) {
-  const d = DEPARTMENTS.find((x) => x.id === member.dept);
+export function TeamMemberHeader({ member, department: departmentProp }) {
+  const d = departmentProp ?? DEPARTMENTS.find((x) => x.id === member.dept);
 
   return (
     <div className="flex flex-col gap-4 border-b border-border/70 pb-6">
@@ -22,7 +34,7 @@ export function TeamMemberHeader({ member }) {
         {d ? (
           <>
             <Link
-              href={{ pathname: routes.team, query: { dept: d.id } }}
+              href={`${routes.team}?dept=${encodeURIComponent(d.id)}`}
               className="text-fg-muted transition-colors hover:text-agency-brand"
             >
               {d.name}

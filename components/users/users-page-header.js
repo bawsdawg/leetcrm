@@ -4,12 +4,29 @@ import { IconShield } from "@/components/crm/icons";
 import { PulseIconDownload } from "@/components/pulse/pulse-icons";
 import { PulseSegmentedControl } from "@/components/pulse/pulse-segmented-control";
 import { TEAM } from "@/lib/crm/static-data";
-import { TASK_DEMO_REF_DATE, TASK_DEMO_USER_ID } from "@/lib/crm/task-utils";
+import { TASK_DEMO_USER_ID } from "@/lib/crm/task-utils";
 import { useState } from "react";
 
-export function UsersPageHeader() {
+/**
+ * @param {{
+ *   dataSource?: "demo" | "database";
+ *   mineLabel?: string | null;
+ *   loading?: boolean;
+ * }} props
+ */
+export function UsersPageHeader({
+  dataSource = "demo",
+  mineLabel = null,
+  loading = false,
+}) {
   const [view, setView] = useState("all");
-  const meName = TEAM.find((m) => m.id === TASK_DEMO_USER_ID)?.name ?? "Medarbejder";
+  const demoName = TEAM.find((m) => m.id === TASK_DEMO_USER_ID)?.name ?? "Medarbejder";
+  const displayName =
+    typeof mineLabel === "string" && mineLabel.trim() ?
+      mineLabel.trim()
+    : dataSource === "demo" ?
+      demoName
+    : "—";
 
   return (
     <div className="flex flex-col gap-3">
@@ -21,11 +38,17 @@ export function UsersPageHeader() {
           </p>
           <h1 className="font-sans text-[22px] font-semibold tracking-tight text-fg md:text-[22px]">Brugerstyring</h1>
           <p className="mt-1 max-w-prose font-sans text-[13px] leading-snug text-fg-muted">
-            Provisionering, roller (mock) og kobling til team-roster — demo-liste udskiftes med Mongo{" "}
-            <code className="font-mono text-[11px] text-fg-quiet">User</code>{" "}
-            <span className="text-fg-quiet">(email, accessTier, caps).</span> Session som{" "}
-            <span className="font-semibold text-fg">{meName}</span>. Ref.{" "}
-            <span className="font-mono tabular-nums text-fg-quiet">{TASK_DEMO_REF_DATE}</span>.
+            Auth-konti og roller — i database vises kun brugere der findes i <code className="font-mono text-[11px] text-fg-quiet">User</code>{" "}
+            (typisk via Google SSO).
+            {dataSource === "database" ?
+              <>
+                {" "}
+                <span className="font-semibold text-fg">MongoDB</span>.
+              </>
+            : <> Demonstrationsliste.</>}
+            {" "}
+            Din række markeres ud fra roster:{" "}
+            <span className="font-semibold text-fg">{loading ? "\u2026" : displayName}</span>.
           </p>
         </div>
 
@@ -41,13 +64,16 @@ export function UsersPageHeader() {
           />
           <button
             type="button"
-            className="inline-flex h-[26px] items-center gap-1.5 rounded-md border border-border bg-surface-muted px-3 font-sans text-[11px] font-medium text-fg-muted transition-colors hover:border-agency-brand-border hover:bg-agency-brand-soft hover:text-agency-brand"
+            disabled
+            className="inline-flex h-[26px] items-center gap-1.5 rounded-md border border-border bg-surface-muted px-3 font-sans text-[11px] font-medium text-fg-muted opacity-60"
+            title="Demo"
           >
             <PulseIconDownload size={12} /> Audit log
           </button>
           <button
             type="button"
-            className="inline-flex h-[26px] items-center rounded-md border border-agency-brand-border bg-agency-brand-soft px-3 font-sans text-[11px] font-medium text-agency-brand transition-colors hover:bg-agency-brand/15"
+            disabled
+            className="inline-flex h-[26px] items-center rounded-md border border-agency-brand-border bg-agency-brand-soft px-3 font-sans text-[11px] font-medium text-agency-brand opacity-70"
           >
             Inviter bruger
           </button>

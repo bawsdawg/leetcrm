@@ -12,7 +12,7 @@ import {
 import { PulseSegmentedControl } from "@/components/pulse/pulse-segmented-control";
 import { PulseUtilBar } from "@/components/pulse/pulse-util-bar";
 import { routes } from "@/config/routes";
-import { DEPARTMENTS } from "@/lib/crm/static-data";
+import { DEPARTMENTS as DEMO_DEPARTMENTS } from "@/lib/crm/static-data";
 import { cn } from "@/lib/utils";
 
 const GRID =
@@ -21,11 +21,18 @@ const GRID =
 /**
  * @param {{
  *   teamRows: ReturnType<typeof import('@/lib/crm/workload-utils').buildTeamWorkloadRows>;
+ *   departments?: { id: string; name: string; short: string; color?: string; capacity?: number }[];
  *   headingId?: string;
  *   initialDeptId?: string;
  * }} props
  */
-export function TeamRosterDirectory({ teamRows, headingId = "team-roster-heading", initialDeptId }) {
+export function TeamRosterDirectory({
+  teamRows,
+  departments: departmentsProp,
+  headingId = "team-roster-heading",
+  initialDeptId,
+}) {
+  const departments = Array.isArray(departmentsProp) && departmentsProp.length ? departmentsProp : DEMO_DEPARTMENTS;
   const [q, setQ] = useState("");
   const [dept, setDept] = useState(initialDeptId ?? "all");
   const [sort, setSort] = useState("load");
@@ -35,7 +42,7 @@ export function TeamRosterDirectory({ teamRows, headingId = "team-roster-heading
     let list = teamRows.filter((r) => {
       if (dept !== "all" && r.member.dept !== dept) return false;
       if (!ql) return true;
-      const d = DEPARTMENTS.find((x) => x.id === r.member.dept);
+      const d = departments.find((x) => x.id === r.member.dept);
       const hay = `${r.member.name} ${r.member.role} ${d?.name ?? ""}`.toLowerCase();
       return hay.includes(ql);
     });
@@ -46,7 +53,7 @@ export function TeamRosterDirectory({ teamRows, headingId = "team-roster-heading
       return b.loadIndex - a.loadIndex;
     });
     return list;
-  }, [teamRows, q, dept, sort]);
+  }, [teamRows, q, dept, sort, departments]);
 
   return (
     <section
@@ -108,7 +115,7 @@ export function TeamRosterDirectory({ teamRows, headingId = "team-roster-heading
         >
           Alle
         </button>
-        {DEPARTMENTS.map((d) => (
+        {departments.map((d) => (
           <button
             key={d.id}
             type="button"
@@ -158,7 +165,7 @@ export function TeamRosterDirectory({ teamRows, headingId = "team-roster-heading
           </div>
 
           {filtered.map((r, i) => {
-            const d = DEPARTMENTS.find((x) => x.id === r.member.dept);
+            const d = departments.find((x) => x.id === r.member.dept);
             return (
               <Link
                 key={r.member.id}

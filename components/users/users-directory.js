@@ -7,7 +7,7 @@ import { PulseIconChevronDown, PulseIconChevronRight, PulseIconSearch } from "@/
 import { PulseSegmentedControl } from "@/components/pulse/pulse-segmented-control";
 import { routes } from "@/config/routes";
 import { formatIsoDateDa } from "@/lib/crm/format-da";
-import { AGENCY_USERS } from "@/lib/crm/users-data";
+import { AGENCY_USERS as FALLBACK_AGENCY_USERS } from "@/lib/crm/users-data";
 import { agencyPlatformRoleLabel } from "@/lib/crm/users-utils";
 import { TASK_DEMO_USER_ID } from "@/lib/crm/task-utils";
 import { cn } from "@/lib/utils";
@@ -22,16 +22,23 @@ function formatSeen(iso) {
 
 /**
  * @param {{
+ *   users?: import('@/lib/crm/users-data').AGENCY_USERS;
+ *   myTeamMemberKey?: string | null;
  *   initialStatus?: 'all'|'active'|'invited'|'suspended';
  *   initialRole?: 'all'|'admin'|'lead'|'finance'|'member'|'readonly';
  *   headingId?: string;
+ *   dataSource?: 'demo' | 'database';
  * }} props
  */
 export function UsersDirectory({
+  users: usersProp,
+  myTeamMemberKey = null,
   initialStatus = "all",
   initialRole = "all",
   headingId = "users-directory-heading",
+  dataSource = "demo",
 }) {
+  const users = usersProp ?? FALLBACK_AGENCY_USERS;
   const [q, setQ] = useState("");
   const [statusF, setStatusF] = useState(initialStatus);
   const [roleF, setRoleF] = useState(initialRole);
@@ -39,7 +46,7 @@ export function UsersDirectory({
 
   const filtered = useMemo(() => {
     const ql = q.trim().toLowerCase();
-    let list = AGENCY_USERS.filter((u) => {
+    let list = users.filter((u) => {
       if (statusF !== "all" && u.status !== statusF) return false;
       if (roleF !== "all" && u.platformRole !== roleF) return false;
       if (ql && !`${u.name} ${u.email}`.toLowerCase().includes(ql) && !u.id.toLowerCase().includes(ql)) {
@@ -54,9 +61,9 @@ export function UsersDirectory({
       return a.name.localeCompare(b.name, "da");
     });
     return list;
-  }, [q, statusF, roleF, sort]);
+  }, [q, statusF, roleF, sort, users]);
 
-  const invitedCount = AGENCY_USERS.filter((u) => u.status === "invited").length;
+  const invitedCount = users.filter((u) => u.status === "invited").length;
 
   return (
     <section
@@ -69,7 +76,7 @@ export function UsersDirectory({
           Brugerindeks
         </h2>
         <span className="inline-flex h-[22px] items-center rounded-full border border-agency-brand-border bg-agency-brand-soft px-2 font-mono text-[11px] font-medium tabular-nums text-agency-brand">
-          {filtered.length} af {AGENCY_USERS.length}
+          {filtered.length} af {users.length}
         </span>
         <div className="flex min-w-0 flex-1 flex-col gap-2 md:ml-auto md:max-w-[320px]">
           <label className="relative flex w-full min-w-0">
@@ -98,12 +105,12 @@ export function UsersDirectory({
           onChange={setStatusF}
           tabs={[
             { id: "all", label: "Alle status" },
-            { id: "active", label: "Aktiv", count: AGENCY_USERS.filter((x) => x.status === "active").length },
+            { id: "active", label: "Aktiv", count: users.filter((x) => x.status === "active").length },
             { id: "invited", label: "Invitation", count: invitedCount },
             {
               id: "suspended",
               label: "Susp.",
-              count: AGENCY_USERS.filter((x) => x.status === "suspended").length,
+              count: users.filter((x) => x.status === "suspended").length,
             },
           ]}
         />
@@ -122,6 +129,18 @@ export function UsersDirectory({
         />
       </div>
 
+      {users.length === 0 ? (
+        <p className="rounded-xl border border-border-soft bg-surface-muted/40 px-4 py-4 text-center font-sans text-[13px] leading-relaxed text-fg-muted">
+          {dataSource === "database" ?
+            <>
+              Der er endnu ingen rækker i <span className="font-mono text-fg-soft">User</span> — typisk oprettes de automatisk
+              ved Google-login. Vi opretter ikke falske brugere i seed.
+            </>
+          : "Ingen brugere i listen."}
+        </p>
+      ) : null}
+
+      {users.length > 0 ? (
       <div className="overflow-x-auto">
         <div className="min-w-[1040px]">
           <div
@@ -160,7 +179,9 @@ export function UsersDirectory({
           </div>
 
           {filtered.map((u, i) => {
-            const isMe = u.teamMemberId === TASK_DEMO_USER_ID;
+            const isMe =
+              (myTeamMemberKey && u.teamMemberId === myTeamMemberKey) ||
+              (!myTeamMemberKey && dataSource === "demo" && u.teamMemberId === TASK_DEMO_USER_ID);
             return (
               <Link
                 key={u.id}
@@ -213,16 +234,26 @@ export function UsersDirectory({
           })}
         </div>
       </div>
+      ) : null}
 
-      {filtered.length === 0 ? (
+      {users.length > 0 && filtered.length === 0 ? (
         <div className="px-4 py-10 text-center font-sans text-[13px] text-fg-muted">Ingen brugere matcher filtrene.</div>
       ) : null}
 
+      {users.length > 0 ? (
       <div className="border-t border-border px-4 py-3 font-sans text-[11px] text-fg-muted">
-        Rækken med <span className="font-semibold text-agency-brand">lys baggrund</span> matcher din demo-session (
-        <span className="font-mono">teamMemberId</span>{" "}
-        ≡ <span className="font-mono">TASK_DEMO_USER_ID</span>).
+        Rækken med <span className="font-semibold text-agency-brand">lys baggrund</span>{" "}
+        {dataSource === "database" ?
+          <>
+            matcher din session når <span className="font-mono">TeamMember.key</span> er knyttet til din konto.
+          </>
+        : (
+          <>
+            er den samme som demo-session (<span className="font-mono">Louise / lm</span>).
+          </>
+        )}
       </div>
+      ) : null}
     </section>
   );
 }
