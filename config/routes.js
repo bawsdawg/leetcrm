@@ -29,3 +29,13 @@ export const routes = {
     cron: "/api/cron",
   },
 };
+
+/**
+ * @param {string} memberKey TeamMember.key / demo TEAM.id
+ */
+export function workloadMemberHref(memberKey) {
+  const k = String(memberKey ?? "").trim();
+  if (!k) return routes.workload;
+  return `${routes.workload}/${encodeURIComponent(k)}`;
+}
+

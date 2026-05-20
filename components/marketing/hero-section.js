@@ -24,6 +24,9 @@ export function HeroSection() {
         <div className="flex max-w-5xl flex-col gap-8">
           <div className="flex flex-wrap gap-3 gap-y-3 text-[0.6875rem] font-medium uppercase tracking-[0.06em] text-fg-muted">
             <span className="inline-flex rounded-full border border-border-pill px-4 py-1 text-fg/90">
+              Agency CRM
+            </span>
+            <span className="inline-flex rounded-full border border-border-pill px-4 py-1 text-fg/90">
               {site.branding}
             </span>
           </div>
@@ -32,11 +35,12 @@ export function HeroSection() {
               id="hero-heading"
               className="text-display-hero font-normal leading-[1] tracking-[-0.035em] text-fg"
             >
-              Ship products that feel inevitable.
+              One workspace for clients, delivery, and capacity.
             </h1>
             <p className="max-w-xl font-sans text-xl leading-relaxed text-fg-muted md:text-[1.125rem]">
-              {site.branding} pairs a cinematic dark UI with Google workspace SSO, MongoDB
-              persistence, and a route structure ready for shipping.
+              Pulse overview, clients and contracts, tasks with reusable templates, time entries, workload by
+              discipline, team roster, NPS, and reports — one design-system UI. Sign in with Google; your data lives in
+              MongoDB.
             </p>
           </div>
         </div>

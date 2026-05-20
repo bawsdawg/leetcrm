@@ -1,10 +1,21 @@
 import { PulseCardHeader } from "@/components/pulse/pulse-card-header";
 import { UTIL_TREND } from "@/lib/crm/static-data";
 
+/** @typedef {{ billable: number; overhead: number }} TrendPt */
+
+/** @returns {TrendPt[]} */
+function defaultTrendFromStatic() {
+  return UTIL_TREND.map(({ billable, overhead }) => ({ billable, overhead }));
+}
+
 /** Kompakt bureau-trendsøjle — matcher Pulse &quot;timer fordelt&quot; for workload-kontekst. */
-export function WorkloadMiniTrend() {
-  const data = UTIL_TREND;
+/**
+ * @param {{ series?: TrendPt[] | null }} props
+ */
+export function WorkloadMiniTrend({ series = null }) {
+  const data = Array.isArray(series) && series.length > 0 ? series : defaultTrendFromStatic();
   const maxVal = Math.max(...data.flatMap((d) => [d.billable + d.overhead]), 1) * 1.08;
+  const dayLabel = `${data.length} dag${data.length === 1 ? "" : "e"}`;
 
   const w = 520;
   const h = 130;
@@ -12,16 +23,18 @@ export function WorkloadMiniTrend() {
   const cw = w - pad.l - pad.r;
   const ch = h - pad.t - pad.b;
 
+  const subHint =
+    series && Array.isArray(series) && series.length > 0
+      ? "Billable vs. overhead aggregeret pr. rapportperiode/database — hurtig pres-læsning."
+      : "Billable vs. overhead fra Pulse-fixtures eller database — hurtig læsning af pres.";
+
   return (
     <section
       className="rounded-2xl border border-border bg-surface-card p-4 shadow-inset-card md:p-5"
       aria-labelledby="workload-mini-trend-heading"
     >
       <div id="workload-mini-trend-heading">
-        <PulseCardHeader
-          title="Bureau-rhyme (30 dage)"
-          sub="Billable vs. overhead fra samme fixtures som Pulse — hurtig læsning af pres i kalenderen."
-        />
+        <PulseCardHeader title={`Bureau-rhyme (${dayLabel})`} sub={subHint} />
       </div>
 
       <svg

@@ -7,7 +7,7 @@ import { CrmAvatar } from "@/components/crm/crm-avatar";
 import { PulseIconChevronDown, PulseIconSearch } from "@/components/pulse/pulse-icons";
 import { PulseSegmentedControl } from "@/components/pulse/pulse-segmented-control";
 import { PulseUtilBar } from "@/components/pulse/pulse-util-bar";
-import { routes } from "@/config/routes";
+import { routes, workloadMemberHref } from "@/config/routes";
 import { DEPARTMENTS } from "@/lib/crm/static-data";
 import { cn } from "@/lib/utils";
 
@@ -15,9 +15,15 @@ const GRID =
   "grid-cols-[minmax(160px,1.4fr)_minmax(52px,0.45fr)_minmax(52px,0.45fr)_minmax(44px,0.38fr)_minmax(44px,0.38fr)_minmax(44px,0.38fr)_minmax(120px,0.95fr)_minmax(72px,0.6fr)]";
 
 /**
- * @param {{ rows: ReturnType<typeof import('@/lib/crm/workload-utils').buildTeamWorkloadRows> }} props
+ * @param {{
+ *   rows: ReturnType<typeof import('@/lib/crm/workload-utils').buildTeamWorkloadRows>;
+ *   departments?: { id: string; name: string; short: string; color: string }[];
+ * }} props
  */
-export function WorkloadTeamDirectory({ rows }) {
+export function WorkloadTeamDirectory({ rows, departments }) {
+  const deptList =
+    departments && departments.length > 0 ? departments : DEPARTMENTS.map((d) => ({ ...d, color: String(d.color) }));
+
   const [q, setQ] = useState("");
   const [sort, setSort] = useState("load");
 
@@ -25,7 +31,7 @@ export function WorkloadTeamDirectory({ rows }) {
     const ql = q.trim().toLowerCase();
     let list = rows.filter((r) => {
       if (!ql) return true;
-      const dep = DEPARTMENTS.find((d) => d.id === r.member.dept);
+      const dep = deptList.find((d) => d.id === r.member.dept);
       const hay = [r.member.name, r.member.role, dep?.name, r.member.dept].filter(Boolean).join(" ").toLowerCase();
       return hay.includes(ql);
     });
@@ -37,7 +43,7 @@ export function WorkloadTeamDirectory({ rows }) {
       return 0;
     });
     return list;
-  }, [q, sort, rows]);
+  }, [q, sort, rows, deptList]);
 
   return (
     <section className="overflow-hidden rounded-2xl border border-border bg-surface-card shadow-inset-card">
@@ -45,7 +51,7 @@ export function WorkloadTeamDirectory({ rows }) {
         <div>
           <h2 className="font-sans text-sm font-semibold text-fg">Team-belægning</h2>
           <p className="mt-1 max-w-xl font-sans text-[11px] text-fg-muted">
-            Mock-index fra åbne opgaver + disciplin-performance. Sortering og søgning er klientside.
+            Belægningsindeks fra åbne opgaver og disciplintal. Klik på navnet for månedlig detaljevisning. Søg og sorter sker lokalt på siden.
           </p>
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-2 md:max-w-none md:flex-row md:justify-end">
@@ -110,7 +116,7 @@ export function WorkloadTeamDirectory({ rows }) {
           </div>
 
           {filtered.map((r, i) => {
-            const dep = DEPARTMENTS.find((d) => d.id === r.member.dept);
+            const dep = deptList.find((d) => d.id === r.member.dept);
             return (
               <div
                 key={r.member.id}
@@ -125,7 +131,12 @@ export function WorkloadTeamDirectory({ rows }) {
                 <div className="flex min-w-0 items-center gap-2">
                   <CrmAvatar label={r.member.avatar} hue={r.member.hue} className="size-8 text-[11px]" />
                   <div className="min-w-0">
-                    <div className="truncate font-sans text-[13px] font-semibold leading-tight text-fg">{r.member.name}</div>
+                    <Link
+                      href={workloadMemberHref(r.member.id)}
+                      className="block truncate font-sans text-[13px] font-semibold leading-tight text-fg hover:text-agency-brand"
+                    >
+                      {r.member.name}
+                    </Link>
                     <div className="truncate font-sans text-[10px] text-fg-quiet">{r.member.role}</div>
                   </div>
                 </div>
@@ -153,7 +164,8 @@ export function WorkloadTeamDirectory({ rows }) {
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-3">
         <p className="font-sans text-[11px] text-fg-muted">
-          Profilen hvor <code className="font-mono text-[10px]">isMe</code> er markeret lyses op på rækken.
+          Profiler markeret som <code className="font-mono text-[10px]">isMe</code> ligger i fokus. Klik navn for
+          detaljeside for rapportmåneden.
         </p>
         <Link href={routes.team} className="font-sans text-[11px] font-medium text-agency-brand hover:underline">
           Team-hub →

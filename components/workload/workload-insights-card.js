@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { routes } from "@/config/routes";
+import { routes, workloadMemberHref } from "@/config/routes";
 import { SMART_ALERTS } from "@/lib/crm/static-data";
 import { cn } from "@/lib/utils";
 
@@ -8,10 +8,12 @@ import { cn } from "@/lib/utils";
  * @param {{
  *   deptRows: ReturnType<typeof import('@/lib/crm/workload-utils').buildDeptWorkloadRows>;
  *   teamRows: ReturnType<typeof import('@/lib/crm/workload-utils').buildTeamWorkloadRows>;
+ *   budgetAlerts?: typeof SMART_ALERTS;
  * }} props
  */
-export function WorkloadInsightsCard({ deptRows, teamRows }) {
-  const budgetAlerts = SMART_ALERTS.filter((a) => a.type === "overBudget");
+export function WorkloadInsightsCard({ deptRows, teamRows, budgetAlerts }) {
+  const budgetAlertsResolved =
+    budgetAlerts === undefined ? SMART_ALERTS.filter((a) => a.type === "overBudget") : budgetAlerts;
   const hotDepts = deptRows.filter((r) => r.tone === "burn" || r.tone === "sell");
   const hotPeople = teamRows.filter((r) => r.loadIndex >= 82).slice(0, 4);
 
@@ -33,7 +35,7 @@ export function WorkloadInsightsCard({ deptRows, teamRows }) {
       </div>
 
       <p className="mt-2 font-sans text-[11px] leading-snug text-fg-muted">
-        Automatisk triage fra disciplin-toner, team-belægning og budget-alerts (mock).
+        Triage ud fra disciplin-toner og team-liste{budgetAlerts === undefined ? " — budget-alerts fra Pulse-demodata." : " — Pulse budget-alerts når databasen leverer signaler."}
       </p>
 
       <ul className="mt-4 flex flex-col gap-3">
@@ -61,7 +63,9 @@ export function WorkloadInsightsCard({ deptRows, teamRows }) {
             <ul className="mt-2 space-y-1.5 font-sans text-[12px] text-fg-muted">
               {hotPeople.map((r) => (
                 <li key={r.member.id}>
-                  <span className="font-semibold text-fg">{r.member.name}</span>
+                  <Link href={workloadMemberHref(r.member.id)} className="font-semibold text-fg hover:text-agency-brand">
+                    {r.member.name}
+                  </Link>
                   {" — "}
                   belægning <span className="font-mono tabular-nums text-agency-warn">{r.loadIndex}%</span>
                   {" · "}
@@ -78,13 +82,13 @@ export function WorkloadInsightsCard({ deptRows, teamRows }) {
           </li>
         ) : null}
 
-        {budgetAlerts.length > 0 ? (
+        {budgetAlertsResolved.length > 0 ? (
           <li className="rounded-xl border border-border-soft bg-surface-muted/30 px-3 py-3">
             <p className="font-mono text-[10px] font-semibold uppercase tracking-wide text-fg-soft">
               Budget-alerts (Pulse)
             </p>
             <ul className="mt-2 space-y-2">
-              {budgetAlerts.slice(0, 3).map((a) => (
+              {budgetAlertsResolved.slice(0, 3).map((a) => (
                 <li key={a.id} className="font-sans text-[12px] leading-snug text-fg-muted">
                   <span className={cn("font-semibold", a.severity === "bad" ? "text-agency-bad" : "text-agency-warn")}>
                     {a.title}

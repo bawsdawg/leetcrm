@@ -13,6 +13,7 @@ import { TEAM } from "@/lib/crm/static-data";
  *   activeClients: number;
  *   billableHoursMonth: number;
  *   teamWeeklyHours: number;
+ *   teamMemberCount?: number;
  * }} props
  */
 export function WorkloadSummaryStrip({
@@ -25,6 +26,7 @@ export function WorkloadSummaryStrip({
   activeClients,
   billableHoursMonth,
   teamWeeklyHours,
+  teamMemberCount = TEAM.length,
 }) {
   const util = assigned > 0 ? tracked / assigned : 0;
   const sellThrough = capacity > 0 ? assigned / capacity : 0;
@@ -74,7 +76,7 @@ export function WorkloadSummaryStrip({
         tone="brand"
       />
       <PulseKpiCard
-        label={`Team (${TEAM.length} pers.) · uge Σ`}
+        label={`Team (${teamMemberCount} pers.) · uge Σ`}
         value={`${teamWeeklyHours} t (~${fteApprox.toFixed(1)} FTE)`}
         tone="ok"
       />

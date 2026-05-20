@@ -1,16 +1,38 @@
 "use client";
 
-import { useState } from "react";
-
+import { ReportPeriodPicker } from "@/components/crm/report-period-picker";
 import { IconChart } from "@/components/crm/icons";
-import { PulseIconDownload } from "@/components/pulse/pulse-icons";
-import { PulseSegmentedControl } from "@/components/pulse/pulse-segmented-control";
-import { TASK_DEMO_REF_DATE, TASK_DEMO_USER_ID } from "@/lib/crm/task-utils";
 import { TEAM } from "@/lib/crm/static-data";
+import { TASK_DEMO_USER_ID } from "@/lib/crm/task-utils";
+import { formatReportPeriodSubtitle } from "@/lib/crm/report-period";
 
-export function WorkloadPageHeader() {
-  const [horizon, setHorizon] = useState("month");
-  const meName = TEAM.find((m) => m.id === TASK_DEMO_USER_ID)?.name ?? "Medarbejder";
+/**
+ * @param {{
+ *   reportPeriod: { year: number; month: number };
+ *   onReportPeriodChange: (p: { year: number; month: number }) => void;
+ *   dataSource?: "demo" | "database";
+ *   mineLabel?: string | null;
+ *   refreshing?: boolean;
+ *   loading?: boolean;
+ * }} props
+ */
+export function WorkloadPageHeader({
+  reportPeriod,
+  onReportPeriodChange,
+  dataSource = "demo",
+  mineLabel = null,
+  refreshing = false,
+  loading = false,
+}) {
+  const demoFallbackName = TEAM.find((m) => m.id === TASK_DEMO_USER_ID)?.name ?? "Medarbejder";
+  const displayName =
+    typeof mineLabel === "string" && mineLabel.trim() ?
+      mineLabel.trim()
+    : dataSource === "demo" ?
+      demoFallbackName
+    : "Dig";
+
+  const subtitle = formatReportPeriodSubtitle(reportPeriod.year, reportPeriod.month);
 
   return (
     <div className="flex flex-col gap-3">
@@ -20,43 +42,31 @@ export function WorkloadPageHeader() {
             <IconChart size={14} className="text-agency-brand" aria-hidden />
             Kapacitet & belægning
           </p>
-          <h1 className="font-sans text-[22px] font-semibold tracking-tight text-fg md:text-[22px]">
-            Workload
-          </h1>
+          <h1 className="font-sans text-[22px] font-semibold tracking-tight text-fg md:text-[22px]">Workload</h1>
           <p className="mt-1 max-w-prose font-sans text-[13px] leading-snug text-fg-muted">
-            Disciplin-matrix, team-heat og efterspørgsel fra boardet — effektiv planlægning i Agency OS. Ref.{" "}
-            <span className="font-mono tabular-nums text-fg-quiet">{TASK_DEMO_REF_DATE}</span>
-            {" · "}
-            Visning som <span className="font-semibold text-fg">{meName}</span>
+            <span className="capitalize">{subtitle}</span>
+            {" — "}
+            Disciplin-matrix, team-liste og efterspørgsel fra boardet.
+            {dataSource === "demo" ?
+              <> Demonstrationsdata.</>
+            : <>
+                {" "}
+                <span className="font-semibold text-fg">MongoDB</span>
+                {refreshing ?
+                  <span className="font-mono text-[11px] text-fg-quiet"> Opdaterer…</span>
+                : null}
+              </>
+            }
+            {" "}
+            Visning krydret med din profil:{" "}
+            <span className="font-semibold text-fg">{loading ? "\u2026" : displayName}</span>
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <PulseSegmentedControl
-            size="sm"
-            active={horizon}
-            onChange={setHorizon}
-            tabs={[
-              { id: "week", label: "Uge" },
-              { id: "month", label: "Måned" },
-              { id: "quarter", label: "Kvartal" },
-            ]}
-          />
-          <button
-            type="button"
-            className="inline-flex h-[26px] items-center gap-1.5 rounded-md border border-border bg-surface-muted px-3 font-sans text-[11px] font-medium text-fg-muted transition-colors hover:border-agency-brand-border hover:bg-agency-brand-soft hover:text-agency-brand"
-          >
-            <PulseIconDownload size={12} /> Eksport
-          </button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-end">
+          <ReportPeriodPicker year={reportPeriod.year} month={reportPeriod.month} onChange={onReportPeriodChange} />
         </div>
       </header>
-
-      {horizon !== "month" ? (
-        <p className="rounded-xl border border-border-soft bg-surface-muted/50 px-3 py-2.5 font-sans text-[12px] leading-snug text-fg-muted">
-          <span className="font-medium text-fg">Uge-/kvartals</span> kapacitetsgitter og forecast findes i fuld Agency OS — demo
-          harmoniserer KPI&apos;er omkring <span className="font-medium text-fg">månedssnittet</span> (samme som Pulse).
-        </p>
-      ) : null}
     </div>
   );
 }
