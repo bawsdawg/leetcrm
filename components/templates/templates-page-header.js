@@ -1,13 +1,40 @@
 "use client";
 
-import {
-  PulseIconDownload,
-  PulseIconSparkle,
-} from "@/components/pulse/pulse-icons";
-import { TASK_TEMPLATES } from "@/lib/crm/static-data";
+import { PulseIconSparkle } from "@/components/pulse/pulse-icons";
+import { cn } from "@/lib/utils";
 
-export function TemplatesPageHeader() {
-  const active = TASK_TEMPLATES.filter((t) => t.active).length;
+/**
+ * @param {{
+ *   summary: {
+ *     total: number;
+ *     activeCount: number;
+ *     deptCoverageNum: number;
+ *     deptCoverageDen: number;
+ *     totalUsage: number;
+ *   } | null;
+ *   loading?: boolean;
+ *   refreshing?: boolean;
+ *   onOpenCreate?: () => void;
+ *   createModalOpen?: boolean;
+ *   dataSource: "demo" | "database";
+ * }} props
+ */
+export function TemplatesPageHeader({
+  summary,
+  loading = false,
+  refreshing = false,
+  onOpenCreate,
+  createModalOpen = false,
+  dataSource,
+}) {
+  /** @type {string} */
+  let bodyLine = "";
+
+  if (loading && summary == null) {
+    bodyLine = "Indlæser bibliotek…";
+  } else if (summary != null) {
+    bodyLine = `${summary.total} skabeloner · ${summary.activeCount} aktive · ${summary.deptCoverageNum}/${summary.deptCoverageDen} discipliner · Σ ${summary.totalUsage} provisions-koblinger (opgaver)`;
+  }
 
   return (
     <header className="flex flex-col gap-4 border-b border-border/70 pb-6 md:flex-row md:items-start md:justify-between">
@@ -18,25 +45,33 @@ export function TemplatesPageHeader() {
         <h1 className="font-sans text-[22px] font-semibold tracking-tight text-fg md:text-[22px]">
           Task templates
         </h1>
-        <p className="mt-1 max-w-prose font-sans text-[13px] leading-snug text-fg-muted">
-          {TASK_TEMPLATES.length} skabeloner · {active} aktive · Provisionering fra aftale-scope (mock —
-          erstattes med TaskTemplate API).
+        <p
+          className={cn(
+            "mt-1 max-w-prose font-sans text-[13px] leading-snug text-fg-muted transition-opacity",
+            refreshing && "opacity-60",
+          )}
+        >
+          {bodyLine}
         </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          className="inline-flex h-[26px] items-center gap-1.5 rounded-md border border-agency-brand-border bg-agency-brand-soft px-3 font-sans text-[11px] font-medium text-agency-brand transition-colors hover:bg-agency-brand/15"
-        >
-          <PulseIconSparkle size={12} /> Ny skabelon
-        </button>
-        <button
-          type="button"
-          className="inline-flex h-[26px] items-center gap-1.5 rounded-md border border-border bg-surface-muted px-3 font-sans text-[11px] font-medium text-fg-muted transition-colors hover:border-agency-brand-border hover:bg-agency-brand-soft hover:text-agency-brand"
-        >
-          <PulseIconDownload size={12} /> Eksport
-        </button>
+        {onOpenCreate && dataSource === "database" ?
+          <button
+            type="button"
+            onClick={onOpenCreate}
+            aria-haspopup="dialog"
+            aria-expanded={createModalOpen}
+            className={cn(
+              "inline-flex h-[34px] items-center gap-1.5 rounded-md border px-4 font-sans text-[13px] font-medium",
+              createModalOpen ?
+                "border-agency-brand-border bg-agency-brand-soft text-agency-brand"
+              : "border-agency-brand-border bg-agency-brand-soft text-agency-brand hover:bg-agency-brand/15",
+            )}
+          >
+            <PulseIconSparkle size={14} /> Ny skabelon
+          </button>
+        : null}
       </div>
     </header>
   );

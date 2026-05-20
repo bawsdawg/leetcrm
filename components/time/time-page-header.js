@@ -1,18 +1,43 @@
 "use client";
 
-import { useState } from "react";
-
 import { useTimerModal } from "@/components/crm/timer-modal-context";
+import { ReportPeriodPicker } from "@/components/crm/report-period-picker";
 import { IconClock } from "@/components/crm/icons";
-import { PulseIconDownload } from "@/components/pulse/pulse-icons";
-import { PulseSegmentedControl } from "@/components/pulse/pulse-segmented-control";
-import { TASK_DEMO_REF_DATE, TASK_DEMO_USER_ID } from "@/lib/crm/task-utils";
+import { TASK_DEMO_USER_ID } from "@/lib/crm/task-utils";
+import { formatReportPeriodSubtitle } from "@/lib/crm/report-period";
 import { TEAM } from "@/lib/crm/static-data";
 
-export function TimePageHeader() {
-  const [period, setPeriod] = useState("week");
+/**
+ * @param {{
+ *   reportPeriod: { year: number; month: number };
+ *   onReportPeriodChange: (p: { year: number; month: number }) => void;
+ *   mineLabel?: string | null;
+ *   dataSource?: "demo" | "database";
+ *   refreshing?: boolean;
+ *   loading?: boolean;
+ *   onOpenCreate?: () => void;
+ *   createModalOpen?: boolean;
+ * }} props
+ */
+export function TimePageHeader({
+  reportPeriod,
+  onReportPeriodChange,
+  mineLabel = null,
+  dataSource = "demo",
+  refreshing = false,
+  loading = false,
+  onOpenCreate,
+  createModalOpen = false,
+}) {
   const { openTimer, open: timerModalOpen } = useTimerModal();
-  const meName = TEAM.find((m) => m.id === TASK_DEMO_USER_ID)?.name ?? "Medarbejder";
+  const demoFallbackName = TEAM.find((m) => m.id === TASK_DEMO_USER_ID)?.name ?? "Medarbejder";
+  const displayName =
+    typeof mineLabel === "string" && mineLabel.trim() ? mineLabel.trim()
+    : dataSource === "demo" ?
+      demoFallbackName
+    : "Dig";
+
+  const subtitle = formatReportPeriodSubtitle(reportPeriod.year, reportPeriod.month);
 
   return (
     <div className="flex flex-col gap-3">
@@ -26,51 +51,49 @@ export function TimePageHeader() {
             Tidsregistrering
           </h1>
           <p className="mt-1 max-w-prose font-sans text-[13px] leading-snug text-fg-muted">
-            Ugereolen, daglige mål og stempler — mock ref-dato{" "}
-            <span className="font-mono tabular-nums text-fg-quiet">{TASK_DEMO_REF_DATE}</span>
-            {" · "}
-            Ses som <span className="font-semibold text-fg">{meName}</span>
+            <span className="capitalize">{subtitle}</span>{" "}
+            {dataSource === "demo" ?
+              <> · Demonstrationsdata</>
+            :
+              <>
+                · <span className="font-semibold text-fg">MongoDB</span> (kun egne registreringer)
+                {refreshing ?
+                  <span className="font-mono text-[11px] text-fg-quiet"> Opdaterer…</span>
+                : null}{" "}
+              </>
+            }
+            Navn: <span className="font-semibold text-fg">{loading ? "\u2026" : displayName}</span>
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={openTimer}
-            aria-haspopup="dialog"
-            aria-expanded={timerModalOpen}
-            className="inline-flex h-[26px] items-center rounded-md border border-agency-brand-border bg-agency-brand px-3 font-sans text-[11px] font-semibold text-white transition-colors hover:bg-agency-brand/90"
-          >
-            Timer
-          </button>
-          <PulseSegmentedControl
-            size="sm"
-            active={period}
-            onChange={setPeriod}
-            tabs={[
-              { id: "week", label: "Uge" },
-              { id: "month", label: "Måned" },
-              { id: "quarter", label: "Kvartal" },
-            ]}
-          />
-          <button
-            type="button"
-            className="inline-flex h-[26px] items-center gap-1.5 rounded-md border border-border bg-surface-muted px-3 font-sans text-[11px] font-medium text-fg-muted transition-colors hover:border-agency-brand-border hover:bg-agency-brand-soft hover:text-agency-brand"
-          >
-            <PulseIconDownload size={12} /> Eksport
-          </button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-end">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={openTimer}
+              aria-haspopup="dialog"
+              aria-expanded={timerModalOpen}
+              className="inline-flex h-[26px] items-center rounded-md border border-agency-brand-border bg-agency-brand px-3 font-sans text-[11px] font-semibold text-white transition-colors hover:bg-agency-brand/90"
+            >
+              Timer
+            </button>
+
+            {typeof onOpenCreate === "function" ?
+              <button
+                type="button"
+                onClick={onOpenCreate}
+                aria-haspopup="dialog"
+                aria-expanded={createModalOpen}
+                className="inline-flex h-[26px] items-center rounded-md border border-border bg-surface-muted px-3 font-sans text-[11px] font-semibold text-fg transition-colors hover:border-agency-brand-border hover:bg-agency-brand-soft hover:text-agency-brand"
+              >
+                Ny registrering
+              </button>
+            : null}
+
+            <ReportPeriodPicker year={reportPeriod.year} month={reportPeriod.month} onChange={onReportPeriodChange} />
+          </div>
         </div>
       </header>
-
-      {period !== "week" ? (
-        <p className="rounded-xl border border-border-soft bg-surface-muted/50 px-3 py-2.5 font-sans text-[12px] leading-snug text-fg-muted">
-          <span className="font-medium text-fg">
-            {period === "month" ? "Måneds" : "Kvartals"}
-          </span>
-          -rapport og godkendelsesflow findes i fuld Agency OS — her vises kun{" "}
-          <span className="font-medium text-fg">ugereolen</span> og dagens stempler i demo.
-        </p>
-      ) : null}
     </div>
   );
 }

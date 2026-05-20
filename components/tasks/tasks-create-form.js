@@ -5,10 +5,36 @@ import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
 
 /**
+ * @param {number} offsetDays
+ */
+function isoDatePlusCalendarDays(offsetDays) {
+  const d = new Date();
+  d.setHours(12, 0, 0, 0);
+  d.setDate(d.getDate() + offsetDays);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const da = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${da}`;
+}
+
+/**
+ * @typedef {{
+ *   key: string;
+ *   title: string;
+ *   hint: string;
+ *   departmentKey: string;
+ *   priority: "high" | "medium" | "low";
+ *   suggestedHours: number | null;
+ *   defaultDueOffsetDays: number;
+ * }} TaskTemplatePreset
+ */
+
+/**
  * @param {{
  *   departments: Array<{ id: string; name: string }>;
  *   team: Array<{ id: string; name: string }>;
  *   clientsPicklist: Array<{ value: string; label: string }>;
+ *   taskTemplatesForCreate?: TaskTemplatePreset[];
  *   submitting?: boolean;
  *   error?: string | null;
  *   onSubmit: (body: Record<string, unknown>) => void;
@@ -20,12 +46,14 @@ export function TasksCreateForm({
   departments,
   team,
   clientsPicklist,
+  taskTemplatesForCreate = [],
   submitting,
   error,
   onSubmit,
   onCancel,
   variant = "card",
 }) {
+  const [templateKey, setTemplateKey] = useState("");
   const [title, setTitle] = useState("");
   const [hint, setHint] = useState("");
   const [clientSlug, setClientSlug] = useState(clientsPicklist[0]?.value ?? "");
@@ -35,6 +63,29 @@ export function TasksCreateForm({
   const [priority, setPriority] = useState("medium");
   const [status, setStatus] = useState("todo");
   const [key, setKey] = useState("");
+  const [estimateHours, setEstimateHours] = useState("");
+
+  const applyTemplate = useCallback(
+    (nextKey) => {
+      setTemplateKey(nextKey);
+      if (!nextKey) return;
+      const tpl = taskTemplatesForCreate.find((t) => t.key === nextKey);
+      if (!tpl) return;
+      setTitle(tpl.title);
+      setHint(tpl.hint ?? "");
+      setDepartmentKey(tpl.departmentKey ? tpl.departmentKey : "");
+      setPriority(tpl.priority);
+      if (typeof tpl.defaultDueOffsetDays === "number" && Number.isFinite(tpl.defaultDueOffsetDays)) {
+        setDueDate(isoDatePlusCalendarDays(tpl.defaultDueOffsetDays));
+      }
+      if (typeof tpl.suggestedHours === "number" && Number.isFinite(tpl.suggestedHours)) {
+        setEstimateHours(String(tpl.suggestedHours));
+      } else {
+        setEstimateHours("");
+      }
+    },
+    [taskTemplatesForCreate],
+  );
 
   const submit = useCallback(() => {
     /** @type {Record<string, unknown>} */
@@ -49,8 +100,27 @@ export function TasksCreateForm({
     if (departmentKey && departmentKey !== "—") body.departmentKey = departmentKey;
     if (assigneeMemberKey.trim()) body.assigneeMemberKey = assigneeMemberKey.trim();
     if (key.trim()) body.key = key.trim();
+    if (templateKey.trim()) body.templateKey = templateKey.trim();
+    const ehRaw = estimateHours.trim().replace(",", ".");
+    if (ehRaw !== "") {
+      const eh = Number.parseFloat(ehRaw);
+      if (Number.isFinite(eh)) body.estimateHours = eh;
+    }
     onSubmit(body);
-  }, [title, hint, clientSlug, departmentKey, assigneeMemberKey, dueDate, priority, status, key, onSubmit]);
+  }, [
+    title,
+    hint,
+    clientSlug,
+    departmentKey,
+    assigneeMemberKey,
+    dueDate,
+    priority,
+    status,
+    key,
+    templateKey,
+    estimateHours,
+    onSubmit,
+  ]);
 
   const isModal = variant === "modal";
 
@@ -66,6 +136,30 @@ export function TasksCreateForm({
         <h2 className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-fg-soft">Ny opgave</h2>
       )}
       <div className={cn("grid gap-4 sm:grid-cols-2", !isModal && "mt-4")}>
+        {taskTemplatesForCreate.length > 0 ?
+          <label className="flex flex-col gap-1 font-sans text-[12px] text-fg-muted sm:col-span-2">
+            <span>Skabelon (valgfri)</span>
+            <select
+              value={templateKey}
+              onChange={(e) => applyTemplate(e.target.value)}
+              className={cn(
+                "rounded-md border border-border bg-surface-muted px-3 py-2 font-sans text-[13px] text-fg",
+                "outline-none focus-visible:ring-2 focus-visible:ring-agency-brand",
+              )}
+            >
+              <option value="">— Ingen (start forfra)</option>
+              {taskTemplatesForCreate.map((t) => (
+                <option key={t.key} value={t.key}>
+                  {t.title}
+                </option>
+              ))}
+            </select>
+            <span className="font-sans text-[11px] leading-snug text-fg-quiet">
+              Udfylder titel, hint, disciplin, prioritet, forfald og timer ud fra Task template; du kan rette alt før
+              oprettelse. Opgaven kobles til skabelonen i databasen.
+            </span>
+          </label>
+        : null}
         <label className="flex flex-col gap-1 font-sans text-[12px] text-fg-muted">
           <span>Titel *</span>
           <input
@@ -149,6 +243,20 @@ export function TasksCreateForm({
             onChange={(e) => setDueDate(e.target.value)}
             className={cn(
               "rounded-md border border-border bg-surface-muted px-3 py-2 font-sans text-[13px] text-fg",
+              "outline-none focus-visible:ring-2 focus-visible:ring-agency-brand",
+            )}
+          />
+        </label>
+        <label className="flex flex-col gap-1 font-sans text-[12px] text-fg-muted">
+          <span>Estimerede timer</span>
+          <input
+            type="text"
+            inputMode="decimal"
+            placeholder="Valgfri"
+            value={estimateHours}
+            onChange={(e) => setEstimateHours(e.target.value)}
+            className={cn(
+              "rounded-md border border-border bg-surface-muted px-3 py-2 font-mono text-[13px] text-fg",
               "outline-none focus-visible:ring-2 focus-visible:ring-agency-brand",
             )}
           />

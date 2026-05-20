@@ -4,22 +4,20 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { CrmDialog } from "@/components/crm/crm-dialog";
-import { TasksCreateForm } from "@/components/tasks/tasks-create-form";
-import { TasksDirectory } from "@/components/tasks/tasks-directory";
-import { TasksPageHeader } from "@/components/tasks/tasks-page-header";
-import { TasksSummaryStrip } from "@/components/tasks/tasks-summary-strip";
 import { useDataSource } from "@/components/crm/use-data-source";
-import { getTasksDemoBundle } from "@/lib/crm/tasks-demo-bundle";
-import { getCurrentReportPeriod, normalizeReportPeriod } from "@/lib/crm/report-period";
+import { TemplatesCreateForm } from "@/components/templates/templates-create-form";
+import { TemplatesDirectory } from "@/components/templates/templates-directory";
+import { TemplatesPageHeader } from "@/components/templates/templates-page-header";
+import { TemplatesSummaryStrip } from "@/components/templates/templates-summary-strip";
+import { getTaskTemplatesDemoBundle } from "@/lib/crm/templates-demo-bundle";
 import { cn } from "@/lib/utils";
 
-/** @typedef {ReturnType<typeof getTasksDemoBundle>} TasksPortfolioBundle */
+/** @typedef {ReturnType<typeof getTaskTemplatesDemoBundle>} TemplatesPortfolioBundle */
 
-export function TasksPortfolio() {
+export function TemplatesPortfolio() {
   const dataSource = useDataSource();
   const router = useRouter();
-  const [period, setPeriod] = useState(() => getCurrentReportPeriod());
-  const [bundle, setBundle] = useState(/** @type {TasksPortfolioBundle | null} */ (null));
+  const [bundle, setBundle] = useState(/** @type {TemplatesPortfolioBundle | null} */ (null));
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(/** @type {string | null} */ (null));
@@ -40,29 +38,20 @@ export function TasksPortfolio() {
     setCreateError(null);
   }, []);
 
-  const handlePeriodChange = useCallback((next) => {
-    setPeriod(normalizeReportPeriod(next));
-  }, []);
-
   const load = useCallback(async () => {
     const isInitial = !hasLoadedRef.current;
     if (isInitial) setLoading(true);
     else setRefreshing(true);
     setError(null);
     try {
-      const p = normalizeReportPeriod(period);
       if (dataSource === "demo") {
-        setBundle(getTasksDemoBundle(p));
+        setBundle(getTaskTemplatesDemoBundle());
         hasLoadedRef.current = true;
       } else {
-        const qs = new URLSearchParams({
-          includeTest: "1",
-          year: String(p.year),
-          month: String(p.month),
-        });
-        const res = await fetch(`/api/tasks?${qs}`, { cache: "no-store" });
+        const qs = new URLSearchParams({ includeTest: "1" });
+        const res = await fetch(`/api/task-templates?${qs}`, { cache: "no-store" });
         const data = await res.json();
-        if (!res.ok) throw new Error(data?.error ?? "Kunne ikke hente opgaver");
+        if (!res.ok) throw new Error(data?.error ?? "Kunne ikke hente skabeloner");
         setBundle(data);
         hasLoadedRef.current = true;
       }
@@ -73,7 +62,7 @@ export function TasksPortfolio() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [dataSource, period]);
+  }, [dataSource]);
 
   useEffect(() => {
     hasLoadedRef.current = false;
@@ -87,14 +76,8 @@ export function TasksPortfolio() {
 
   const sourceFootnote =
     dataSource === "database"
-      ? "MongoDB (inkl. testdata ved isTest via includeTest)."
-      : "Demo (`lib/crm/static-data.js`).";
-
-  const mineLabel =
-    bundle && bundle.tasks && bundle.team ?
-      bundle.team.find((m) => m.id === bundle.mineAssigneeKey)?.name ??
-      (bundle.mineAssigneeKey ? bundle.mineAssigneeKey : "")
-    : "";
+      ? "MongoDB (taskTemplates, includeTest=1)."
+      : "Demo (TASK_TEMPLATES i lib/crm/static-data.js).";
 
   const handleCreateSubmit = useCallback(
     async (body) => {
@@ -103,7 +86,7 @@ export function TasksPortfolio() {
       setCreateError(null);
       try {
         const qs = new URLSearchParams({ includeTest: "1" });
-        const res = await fetch(`/api/tasks?${qs}`, {
+        const res = await fetch(`/api/task-templates?${qs}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
@@ -112,8 +95,12 @@ export function TasksPortfolio() {
         if (!res.ok) throw new Error(data?.error ?? "Kunne ikke oprette");
         closeCreateModal();
         await load();
-        if (typeof data?.wire?.id === "string" && data.wire.id) {
-          router.push(`/tasks/${encodeURIComponent(data.wire.id)}`);
+        const nextId =
+          typeof data?.wire?.id === "string" && data.wire.id ? String(data.wire.id) : typeof body?.key === "string" ?
+            body.key.trim()
+          : "";
+        if (nextId) {
+          router.push(`/templates/${encodeURIComponent(nextId)}`);
         }
       } catch (e) {
         setCreateError(e instanceof Error ? e.message : "Fejl");
@@ -127,15 +114,12 @@ export function TasksPortfolio() {
   if (loading && !bundle) {
     return (
       <div className="flex flex-col gap-[length:var(--ds-studio-stack)]">
-        <TasksPageHeader
-          period={period}
-          onPeriodChange={handlePeriodChange}
-          loading
+        <TemplatesPageHeader
           summary={null}
-          mineLabel={null}
+          loading
+          dataSource={dataSource}
           onOpenCreate={undefined}
           createModalOpen={false}
-          dataSource={dataSource}
         />
         <div className="grid gap-[length:var(--ds-studio-stack)] sm:grid-cols-2 xl:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
@@ -150,13 +134,7 @@ export function TasksPortfolio() {
   if (error || !bundle) {
     return (
       <div className="flex flex-col gap-[length:var(--ds-studio-stack)]">
-        <TasksPageHeader
-          period={period}
-          onPeriodChange={handlePeriodChange}
-          summary={null}
-          mineLabel={null}
-          dataSource={dataSource}
-        />
+        <TemplatesPageHeader summary={null} dataSource={dataSource} />
         <p className="rounded-lg border border-agency-bad-border bg-agency-bad-soft px-4 py-3 font-sans text-[13px] text-agency-bad">
           {error ?? "Ingen data"}
         </p>
@@ -166,23 +144,18 @@ export function TasksPortfolio() {
 
   return (
     <div className="flex flex-col gap-[length:var(--ds-studio-stack)]">
-      <TasksPageHeader
-        period={period}
-        onPeriodChange={handlePeriodChange}
-        refreshing={refreshing}
+      <TemplatesPageHeader
         summary={bundle.summary}
-        mineLabel={mineLabel || bundle.mineAssigneeKey || null}
-        onOpenCreate={dataSource === "database" ? openCreateModal : undefined}
+        refreshing={refreshing}
+        onOpenCreate={openCreateModal}
         createModalOpen={showCreate}
         dataSource={dataSource}
-        taskDueReferenceIso={bundle.taskDueReferenceIso}
-        periodLabel={bundle.period.label}
       />
 
       <CrmDialog
         open={showCreate && dataSource === "database"}
         onClose={closeCreateModal}
-        ariaLabel="Ny opgave"
+        ariaLabel="Ny skabelon"
         maxWidthClass="w-[min(100vw-1.5rem,560px)]"
       >
         <div className="flex max-h-[min(92vh,920px)] flex-col">
@@ -191,9 +164,10 @@ export function TasksPortfolio() {
               <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-fg-soft">
                 Ny registrering
               </p>
-              <h2 className="font-sans text-[17px] font-semibold leading-snug text-fg md:text-[18px]">Ny opgave</h2>
+              <h2 className="font-sans text-[17px] font-semibold leading-snug text-fg md:text-[18px]">Ny skabelon</h2>
               <p className="mt-1 font-sans text-[12px] text-fg-muted">
-                Gemmes i Mongo som <span className="font-mono text-[11px] text-fg-soft">tasks</span> med valgfri stabile nøgler og kundeslug.
+                Gemmes via <span className="font-mono text-[11px] text-fg-soft">POST /api/task-templates</span> med stabil
+                nøgle og valgfrit <span className="font-mono text-[11px] text-fg-soft">isTest</span>.
               </p>
             </div>
             <button
@@ -207,12 +181,9 @@ export function TasksPortfolio() {
             </button>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-6 pt-4 md:px-6 md:pb-8">
-            <TasksCreateForm
+            <TemplatesCreateForm
               key={createFormKey}
               departments={bundle.departments}
-              team={bundle.team}
-              clientsPicklist={bundle.clientsPicklist}
-              taskTemplatesForCreate={bundle.taskTemplatesForCreate ?? []}
               submitting={createSubmitting}
               error={createError}
               onSubmit={handleCreateSubmit}
@@ -224,20 +195,16 @@ export function TasksPortfolio() {
       </CrmDialog>
 
       <div className={cn("flex flex-col gap-[length:var(--ds-studio-stack)] transition-opacity", refreshing && "opacity-65")}>
-        <TasksSummaryStrip summary={bundle.summary} />
+        <TemplatesSummaryStrip summary={bundle.summary} />
 
-        <TasksDirectory
-          tasks={bundle.tasks}
+        <TemplatesDirectory
+          templates={bundle.templates}
           departments={bundle.departments}
-          team={bundle.team}
-          taskDueReferenceIso={bundle.taskDueReferenceIso}
-          mineAssigneeKey={bundle.mineAssigneeKey}
+          totalTemplates={bundle.templates.length}
         />
 
         <p className="font-sans text-[12px] text-fg-quiet">
           Datakilde: <span className="text-fg-muted">{sourceFootnote}</span>
-          {" · "}
-          Forfald vs. periodeslut <span className="font-mono text-[11px] text-fg-muted">{bundle.overdueRefIso}</span>
           {" · "}
           Skift under <span className="font-medium text-fg-muted">Indstillinger → Datakilde</span>.
         </p>

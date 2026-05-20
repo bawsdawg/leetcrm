@@ -1,8 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { TaskPriorityChip } from "@/components/crm/task-priority-chip";
 import { TemplateGridCard } from "@/components/templates/template-grid-card";
 import {
   PulseIconChevronDown,
@@ -12,8 +12,8 @@ import {
   PulseIconSearch,
 } from "@/components/pulse/pulse-icons";
 import { PulseSegmentedControl } from "@/components/pulse/pulse-segmented-control";
+import { TaskPriorityChip } from "@/components/crm/task-priority-chip";
 import { formatIsoDateDa } from "@/lib/crm/format-da";
-import { DEPARTMENTS, TASK_TEMPLATES } from "@/lib/crm/static-data";
 import { cn } from "@/lib/utils";
 
 const SCOPE_DA = {
@@ -26,18 +26,40 @@ const GRID =
   "grid-cols-[minmax(220px,2.2fr)_minmax(124px,0.92fr)_minmax(94px,0.85fr)_minmax(40px,0.38fr)_minmax(74px,0.72fr)_minmax(80px,0.74fr)_minmax(92px,0.85fr)_minmax(104px,0.92fr)_36px]";
 
 /**
- * @param {{ headingId?: string; toolbarTitle?: string }} props
+ * @typedef {{ id: string; name: string; hint: string; dept: string; defaultPriority: string; defaultDueOffsetDays: number; estHours: number; checklistCount: number; scope: string; active: boolean; updatedAt: string; usedCount: number }} TemplateWireLike
  */
-export function TemplatesDirectory({ headingId = "templates-directory-heading", toolbarTitle = "Alle skabeloner" }) {
+
+/**
+ * @typedef {{ id: string; name?: string; short?: string; color?: string }} DeptLike
+ */
+
+/**
+ * @param {{
+ *   templates: TemplateWireLike[];
+ *   departments: DeptLike[];
+ *   totalTemplates?: number;
+ *   headingId?: string;
+ *   toolbarTitle?: string;
+ * }} props
+ */
+export function TemplatesDirectory({
+  templates,
+  departments,
+  totalTemplates,
+  headingId = "templates-directory-heading",
+  toolbarTitle = "Alle skabeloner",
+}) {
+  const total = typeof totalTemplates === "number" ? totalTemplates : templates.length;
+
   const [q, setQ] = useState("");
   const [lifecycle, setLifecycle] = useState("all");
   const [sort, setSort] = useState("updated");
   const [density, setDensity] = useState("list");
 
-  const activeCount = useMemo(() => TASK_TEMPLATES.filter((t) => t.active).length, []);
+  const activeCount = useMemo(() => templates.filter((t) => t.active).length, [templates]);
 
   const filtered = useMemo(() => {
-    const list = TASK_TEMPLATES.filter((t) => {
+    const list = templates.filter((t) => {
       const ql = q.trim().toLowerCase();
       if (
         ql &&
@@ -60,7 +82,7 @@ export function TemplatesDirectory({ headingId = "templates-directory-heading", 
     });
 
     return list;
-  }, [q, lifecycle, sort]);
+  }, [q, lifecycle, sort, templates]);
 
   return (
     <section
@@ -72,7 +94,7 @@ export function TemplatesDirectory({ headingId = "templates-directory-heading", 
           {toolbarTitle}
         </h2>
         <span className="inline-flex h-[22px] items-center rounded-full border border-agency-brand-border bg-agency-brand-soft px-2 font-mono text-[11px] font-medium tabular-nums text-agency-brand">
-          {filtered.length} af {TASK_TEMPLATES.length}
+          {filtered.length} af {total}
         </span>
 
         <div className="flex min-w-0 flex-1 flex-col gap-2 md:ml-auto md:flex-row md:items-center md:justify-end">
@@ -100,7 +122,7 @@ export function TemplatesDirectory({ headingId = "templates-directory-heading", 
             tabs={[
               { id: "all", label: "Alle" },
               { id: "active", label: "Aktive", count: activeCount },
-              { id: "archived", label: "Arkiverede", count: TASK_TEMPLATES.length - activeCount },
+              { id: "archived", label: "Arkiverede", count: total - activeCount },
             ]}
           />
 
@@ -119,7 +141,7 @@ export function TemplatesDirectory({ headingId = "templates-directory-heading", 
       {density === "cards" ? (
         <div className="grid gap-3 p-3 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] md:p-4">
           {filtered.map((row) => (
-            <TemplateGridCard key={row.id} row={row} />
+            <TemplateGridCard key={row.id} row={row} departments={departments} />
           ))}
         </div>
       ) : (
@@ -162,12 +184,14 @@ export function TemplatesDirectory({ headingId = "templates-directory-heading", 
             </div>
 
             {filtered.map((row, i) => {
-              const dep = DEPARTMENTS.find((d) => d.id === row.dept);
+              const dep = departments.find((d) => d.id === row.dept);
+              const href = `/templates/${encodeURIComponent(row.id)}`;
               return (
-                <div
+                <Link
                   key={row.id}
+                  href={href}
                   className={cn(
-                    "grid w-full gap-3 px-3 py-2 text-left transition-colors hover:bg-surface-muted md:px-4 md:py-2.5",
+                    "grid w-full cursor-pointer gap-3 px-3 py-2 text-left transition-colors hover:bg-surface-muted md:px-4 md:py-2.5",
                     GRID,
                     i < filtered.length - 1 && "border-b border-border-soft",
                     !row.active && "opacity-[0.72]",
@@ -180,9 +204,11 @@ export function TemplatesDirectory({ headingId = "templates-directory-heading", 
                   <div className="flex min-w-0 items-center">
                     <span
                       className="font-mono text-[11px] font-semibold tabular-nums"
-                      style={{ color: dep?.color }}
+                      style={{
+                        color: typeof dep?.color === "string" && dep.color ? dep.color : undefined,
+                      }}
                     >
-                      {dep?.short ?? row.dept}
+                      {(dep?.short ?? dep?.name ?? "").trim().slice(0, 8) || row.dept}
                     </span>
                   </div>
                   <span className="font-mono text-[12px] tabular-nums text-fg">{row.usedCount}×</span>
@@ -197,7 +223,10 @@ export function TemplatesDirectory({ headingId = "templates-directory-heading", 
                     </span>
                   </div>
                   <div className="flex items-center">
-                    <TaskPriorityChip priority={row.defaultPriority} className="scale-95 origin-left" />
+                    <TaskPriorityChip
+                      priority={row.defaultPriority === "high" || row.defaultPriority === "low" ? row.defaultPriority : "medium"}
+                      className="scale-95 origin-left"
+                    />
                   </div>
                   <span className="font-mono text-[12px] tabular-nums text-fg">{row.defaultDueOffsetDays} d</span>
                   <span className="font-mono text-[12px] tabular-nums text-fg">{row.estHours} t</span>
@@ -208,7 +237,7 @@ export function TemplatesDirectory({ headingId = "templates-directory-heading", 
                     <span className="font-mono text-[10px] text-fg-quiet">{SCOPE_DA[row.scope] ?? row.scope}</span>
                   </div>
                   <PulseIconChevronRight className="justify-self-end text-fg-quiet" aria-hidden />
-                </div>
+                </Link>
               );
             })}
           </div>

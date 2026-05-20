@@ -11,69 +11,91 @@ import {
 } from "@/components/pulse/pulse-icons";
 import { PulseSegmentedControl } from "@/components/pulse/pulse-segmented-control";
 import { routes } from "@/config/routes";
-import { CLIENTS, DEPARTMENTS, TASKS, TIME_ENTRIES_TODAY } from "@/lib/crm/static-data";
 import { cn } from "@/lib/utils";
 
 const GRID =
-  "grid-cols-[minmax(54px,0.42fr)_minmax(42px,0.32fr)_minmax(128px,0.92fr)_minmax(118px,0.92fr)_minmax(38px,0.3fr)_minmax(160px,1.25fr)_minmax(80px,0.58fr)]";
+  "grid-cols-[minmax(54px,0.42fr)_minmax(42px,0.32fr)_minmax(128px,0.92fr)_minmax(118px,0.92fr)_minmax(38px,0.3fr)_minmax(160px,1.25fr)_minmax(72px,0.52fr)_minmax(80px,0.58fr)]";
 
-/** @param {{ client: string | null | undefined }} e */
-function entryBillable(e) {
-  return e.client != null && e.client !== "";
+/** @param {Record<string, unknown>} row */
+function rowBillableWire(row) {
+  const slug = typeof row.clientSlug === "string" ? row.clientSlug.trim() : "";
+  return row.billable !== false && slug.length > 0;
+}
+
+/** @param {unknown} dur */
+function durNum(dur) {
+  const n = typeof dur === "number" ? dur : Number(dur);
+  return Number.isFinite(n) ? Math.round(n) : 0;
 }
 
 /**
- * @param {{ headingId?: string }} props
+ * @param {{
+ *   entriesToday?: Record<string, unknown>[];
+ *   todayTotalCount?: number;
+ *   headingId?: string;
+ * }} props
  */
-export function TimeEntriesDirectory({ headingId = "time-entries-heading" }) {
+export function TimeEntriesDirectory({
+  entriesToday = [],
+  todayTotalCount,
+  headingId = "time-entries-heading",
+}) {
   const [q, setQ] = useState("");
   const [scope, setScope] = useState("all");
   const [sort, setSort] = useState("time");
   const [density, setDensity] = useState("list");
 
-  const billableCount = useMemo(() => TIME_ENTRIES_TODAY.filter((e) => entryBillable(e)).length, []);
+  const billableCount = useMemo(() => entriesToday.filter((e) => rowBillableWire(e)).length, [entriesToday]);
 
   const rows = useMemo(() => {
-    const list = TIME_ENTRIES_TODAY.map((e) => {
-      const client = e.client ? CLIENTS.find((c) => c.id === e.client) : null;
-      const task = e.task ? TASKS.find((t) => t.id === e.task) : null;
-      const bill = entryBillable(e);
-      return { e, client, task, bill };
-    }).filter(({ e, client, task }) => {
-      const ql = q.trim().toLowerCase();
-      if (ql) {
-        const hay = [
-          e.desc,
-          e.at,
-          client?.name,
-          task?.title,
-          e.id,
-          e.client,
-          e.task,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-        if (!hay.includes(ql)) return false;
-      }
-      if (scope === "billable" && !entryBillable(e)) return false;
-      if (scope === "internal" && entryBillable(e)) return false;
-      return true;
-    });
+    const list = [...entriesToday]
+      .filter((raw) => {
+        const ql = q.trim().toLowerCase();
+        if (ql) {
+          const hay = [
+            raw.desc,
+            raw.at,
+            raw.clientName,
+            raw.taskTitle,
+            raw.id,
+            raw.clientSlug,
+            raw.taskKey,
+          ]
+            .map((x) => (typeof x === "string" ? x : x != null ? String(x) : ""))
+            .join(" ")
+            .toLowerCase();
+          if (!hay.includes(ql)) return false;
+        }
+        if (scope === "billable" && !rowBillableWire(raw)) return false;
+        if (scope === "internal" && rowBillableWire(raw)) return false;
+        return true;
+      })
+      .map((raw) => ({
+        row: raw,
+        bill: rowBillableWire(raw),
+        cmpTime: typeof raw.workedAtIso === "string" ? raw.workedAtIso : "",
+        cmpAt: typeof raw.at === "string" ? raw.at : "",
+        durN: durNum(raw.durationMinutes),
+      }));
 
     list.sort((a, b) => {
-      if (sort === "time") return a.e.at.localeCompare(b.e.at);
-      if (sort === "dur") return b.e.dur - a.e.dur;
+      if (sort === "time") {
+        const t = String(a.cmpTime || "").localeCompare(String(b.cmpTime || ""));
+        return t !== 0 ? t : String(a.cmpAt).localeCompare(String(b.cmpAt));
+      }
+      if (sort === "dur") return b.durN - a.durN;
       if (sort === "client") {
-        const an = a.client?.name ?? "ÅÅÅ";
-        const bn = b.client?.name ?? "ÅÅÅ";
+        const an = typeof a.row.clientName === "string" ? a.row.clientName : "";
+        const bn = typeof b.row.clientName === "string" ? b.row.clientName : "";
         return an.localeCompare(bn, "da");
       }
       return 0;
     });
 
     return list;
-  }, [q, scope, sort]);
+  }, [entriesToday, q, scope, sort]);
+
+  const totalShown = typeof todayTotalCount === "number" ? todayTotalCount : entriesToday.length;
 
   return (
     <section
@@ -85,7 +107,7 @@ export function TimeEntriesDirectory({ headingId = "time-entries-heading" }) {
           Stempler i dag
         </h2>
         <span className="inline-flex h-[22px] items-center rounded-full border border-agency-brand-border bg-agency-brand-soft px-2 font-mono text-[11px] font-medium tabular-nums text-agency-brand">
-          {rows.length} af {TIME_ENTRIES_TODAY.length}
+          {rows.length} af {Math.max(rows.length, totalShown)}
         </span>
 
         <div className="flex min-w-0 flex-1 flex-col gap-2 md:ml-auto md:flex-row md:items-center md:justify-end">
@@ -116,7 +138,7 @@ export function TimeEntriesDirectory({ headingId = "time-entries-heading" }) {
               {
                 id: "internal",
                 label: "Intern",
-                count: TIME_ENTRIES_TODAY.length - billableCount,
+                count: entriesToday.length - billableCount,
               },
             ]}
           />
@@ -135,11 +157,21 @@ export function TimeEntriesDirectory({ headingId = "time-entries-heading" }) {
 
       {density === "cards" ? (
         <div className="grid gap-3 p-3 sm:grid-cols-2 md:p-4 lg:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
-          {rows.map(({ e, client, task, bill }) => {
-            const dep = e.dept ? DEPARTMENTS.find((d) => d.id === e.dept) : null;
+          {rows.map(({ row, bill }) => {
+            const clientName = typeof row.clientName === "string" ? row.clientName : null;
+            const clientSlug = typeof row.clientSlug === "string" && row.clientSlug.trim() ? row.clientSlug.trim() : null;
+            const taskTitle = typeof row.taskTitle === "string" ? row.taskTitle : null;
+            const taskKey =
+              typeof row.taskKey === "string" && row.taskKey.trim() ? row.taskKey.trim() : null;
+            const dept = typeof row.dept === "string" && row.dept ? row.dept : null;
+            const deptCss = typeof row.deptColorVar === "string" ? row.deptColorVar : undefined;
+            const at = typeof row.at === "string" ? row.at : "—";
+            const id = typeof row.id === "string" ? row.id : "unknown";
+            const dm = durNum(row.durationMinutes);
+            const desc = typeof row.desc === "string" ? row.desc : "";
             return (
               <article
-                key={e.id}
+                key={id}
                 className={cn(
                   "flex flex-col rounded-2xl border border-border-soft bg-surface-muted/35 p-3.5",
                   bill ? "" : "border-dashed opacity-95",
@@ -147,53 +179,62 @@ export function TimeEntriesDirectory({ headingId = "time-entries-heading" }) {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="font-mono text-[11px] tabular-nums text-fg-muted">{e.at}</p>
+                    <p className="font-mono text-[11px] tabular-nums text-fg-muted">{at}</p>
                     <p className="mt-1 font-mono text-[18px] font-semibold tabular-nums text-agency-brand">
-                      {e.dur} <span className="text-[12px] font-medium text-fg-soft">min</span>
+                      {dm} <span className="text-[12px] font-medium text-fg-soft">min</span>
                     </p>
                   </div>
                   <span
                     className={cn(
                       "rounded-md px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wide",
-                      bill ? "border border-agency-ok-border bg-agency-brand-soft text-agency-ok" : "border border-border text-fg-quiet",
+                      bill ?
+                        "border border-agency-ok-border bg-agency-brand-soft text-agency-ok"
+                      : "border border-border text-fg-quiet",
                     )}
                   >
                     {bill ? "Billable" : "Intern"}
                   </span>
                 </div>
-                {client ? (
+                {clientSlug && clientName ?
                   <Link
-                    href={`${routes.clients}/${client.id}`}
+                    href={`${routes.clients}/${encodeURIComponent(clientSlug)}`}
                     className="mt-3 truncate font-sans text-[13px] font-semibold text-fg hover:text-agency-brand hover:underline"
                   >
-                    {client.name}
+                    {clientName}
                   </Link>
-                ) : (
-                  <p className="mt-3 font-sans text-[13px] font-medium text-fg-muted">— Intern / overhead</p>
-                )}
-                {task ? (
+                : <p className="mt-3 font-sans text-[13px] font-medium text-fg-muted">— Intern / overhead</p>}
+                {taskKey && taskTitle ?
                   <Link
-                    href={`${routes.tasks}/${task.id}`}
+                    href={`${routes.tasks}/${encodeURIComponent(taskKey)}`}
                     className="mt-1 line-clamp-2 font-sans text-[12px] text-agency-brand hover:underline"
                   >
-                    {task.title}
+                    {taskTitle}
                   </Link>
-                ) : (
-                  <p className="mt-1 font-sans text-[12px] text-fg-quiet">Ingen opgave linket</p>
-                )}
-                {dep ? (
-                  <p className="mt-2 font-mono text-[10px] font-semibold uppercase tracking-wide" style={{ color: dep.color }}>
-                    {dep.short}
+                : <p className="mt-1 font-sans text-[12px] text-fg-quiet">Ingen opgave linket</p>}
+                {dept ?
+                  <p
+                    className="mt-2 font-mono text-[10px] font-semibold uppercase tracking-wide text-fg"
+                    {...(deptCss ? { style: { color: deptCss } } : {})}
+                  >
+                    {dept.slice(0, 4)}
                   </p>
-                ) : null}
-                <p className="mt-2 border-t border-border-soft pt-2 font-sans text-[12px] leading-snug text-fg-muted">{e.desc}</p>
+                : null}
+                <p className="mt-2 border-t border-border-soft pt-2 font-sans text-[12px] leading-snug text-fg-muted">
+                  {desc}
+                </p>
+                <Link
+                  href={`${routes.time}/${encodeURIComponent(typeof row.mongoId === "string" && row.mongoId.trim() ? row.mongoId.trim() : id)}`}
+                  className="mt-2 font-mono text-[10px] text-agency-brand hover:underline"
+                >
+                  Åbn registrering
+                </Link>
               </article>
             );
           })}
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <div className="min-w-[920px]">
+          <div className="min-w-[980px]">
             <div
               className={cn(
                 "grid gap-3 border-b border-border bg-surface-muted/90 px-3 py-2",
@@ -225,14 +266,27 @@ export function TimeEntriesDirectory({ headingId = "time-entries-heading" }) {
               <span>Opgave</span>
               <span className="text-center">Afd.</span>
               <span>Beskrivelse</span>
+              <span className="text-center">Åbn</span>
               <span>Type</span>
             </div>
 
-            {rows.map(({ e, client, task, bill }, i) => {
-              const dep = e.dept ? DEPARTMENTS.find((d) => d.id === e.dept) : null;
+            {rows.map(({ row, bill }, i) => {
+              const clientName = typeof row.clientName === "string" ? row.clientName : null;
+              const clientSlug =
+                typeof row.clientSlug === "string" && row.clientSlug.trim() ? row.clientSlug.trim() : null;
+              const taskTitle = typeof row.taskTitle === "string" ? row.taskTitle : null;
+              const taskKey =
+                typeof row.taskKey === "string" && row.taskKey.trim() ? row.taskKey.trim() : null;
+              const dept = typeof row.dept === "string" && row.dept ? row.dept : null;
+              const deptCss = typeof row.deptColorVar === "string" ? row.deptColorVar : undefined;
+              const at = typeof row.at === "string" ? row.at : "—";
+              const id = typeof row.id === "string" ? row.id : "unknown";
+              const dm = durNum(row.durationMinutes);
+              const desc = typeof row.desc === "string" ? row.desc : "";
+              const detailId = typeof row.mongoId === "string" && row.mongoId.trim() ? row.mongoId.trim() : id;
               return (
                 <div
-                  key={e.id}
+                  key={`${id}-${i}`}
                   className={cn(
                     "grid w-full gap-3 px-3 py-2 md:px-4 md:py-2.5",
                     GRID,
@@ -240,42 +294,47 @@ export function TimeEntriesDirectory({ headingId = "time-entries-heading" }) {
                     !bill && "bg-surface-muted/15",
                   )}
                 >
-                  <span className="font-mono text-[12px] tabular-nums text-fg">{e.at}</span>
-                  <span className="font-mono text-[12px] font-semibold tabular-nums text-agency-brand">{e.dur}</span>
+                  <span className="font-mono text-[12px] tabular-nums text-fg">{at}</span>
+                  <span className="font-mono text-[12px] font-semibold tabular-nums text-agency-brand">{dm}</span>
                   <div className="min-w-0">
-                    {client ? (
+                    {clientSlug && clientName ?
                       <Link
-                        href={`${routes.clients}/${client.id}`}
+                        href={`${routes.clients}/${encodeURIComponent(clientSlug)}`}
                         className="truncate font-sans text-[12px] font-medium text-fg hover:text-agency-brand hover:underline"
                       >
-                        {client.name}
+                        {clientName}
                       </Link>
-                    ) : (
-                      <span className="font-sans text-[12px] text-fg-muted">Intern</span>
-                    )}
+                    : <span className="font-sans text-[12px] text-fg-muted">Intern</span>}
                   </div>
                   <div className="min-w-0">
-                    {task ? (
+                    {taskKey && taskTitle ?
                       <Link
-                        href={`${routes.tasks}/${task.id}`}
+                        href={`${routes.tasks}/${encodeURIComponent(taskKey)}`}
                         className="line-clamp-2 font-sans text-[12px] text-agency-brand hover:underline"
                       >
-                        {task.title}
+                        {taskTitle}
                       </Link>
-                    ) : (
-                      <span className="font-sans text-[12px] text-fg-quiet">—</span>
-                    )}
+                    : <span className="font-sans text-[12px] text-fg-quiet">—</span>}
                   </div>
                   <div className="flex items-center justify-center">
-                    {dep ? (
-                      <span className="font-mono text-[10px] font-semibold" style={{ color: dep.color }}>
-                        {dep.short}
+                    {dept ?
+                      <span
+                        className="font-mono text-[10px] font-semibold text-fg"
+                        {...(deptCss ? { style: { color: deptCss } } : {})}
+                      >
+                        {dept.slice(0, 4)}
                       </span>
-                    ) : (
-                      <span className="text-fg-quiet">—</span>
-                    )}
+                    : <span className="text-fg-quiet">—</span>}
                   </div>
-                  <p className="line-clamp-2 min-w-0 font-sans text-[12px] leading-snug text-fg-muted">{e.desc}</p>
+                  <p className="line-clamp-2 min-w-0 font-sans text-[12px] leading-snug text-fg-muted">{desc}</p>
+                  <div className="flex justify-center">
+                    <Link
+                      href={`${routes.time}/${encodeURIComponent(detailId)}`}
+                      className="font-mono text-[11px] text-agency-brand hover:underline"
+                    >
+                      Post
+                    </Link>
+                  </div>
                   <div className="flex items-center">
                     <span
                       className={cn(

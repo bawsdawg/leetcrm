@@ -9,6 +9,7 @@ import { formatHoursDecimalDa, formatMinutesDa } from "@/lib/crm/format-da";
  *   entryCount: number;
  *   weekLoggedMin: number;
  *   weekGoalMin: number;
+ *   periodCompareLabel?: string;
  * }} props
  */
 export function TimeSummaryStrip({
@@ -18,9 +19,16 @@ export function TimeSummaryStrip({
   entryCount,
   weekLoggedMin,
   weekGoalMin,
+  periodCompareLabel,
 }) {
   const weekRatio = weekGoalMin > 0 ? weekLoggedMin / weekGoalMin : 0;
   const weekTone = weekRatio > 1 ? "bad" : weekRatio > 0.92 ? "warn" : weekRatio > 0.7 ? "ok" : "brand";
+
+  /** @type {string} */
+  const periodLabel =
+    typeof periodCompareLabel === "string" && periodCompareLabel.trim() ?
+      periodCompareLabel.trim()
+    : "Måned vs. mål (arb.d.)";
   const internalShare = todayTotalMin > 0 ? internalMin / todayTotalMin : 0;
   const mixTone = internalShare > 0.25 ? "warn" : "ok";
 
@@ -34,11 +42,7 @@ export function TimeSummaryStrip({
       <PulseKpiCard label="Registreret i dag" value={formatMinutesDa(todayTotalMin)} tone="brand" />
       <PulseKpiCard label="Billable · intern" value={mixValue} tone={mixTone} />
       <PulseKpiCard label="Poster i dag" value={String(entryCount)} tone="ok" />
-      <PulseKpiCard
-        label="Uge vs. mål (5 × 7,5 t)"
-        value={`${formatHoursDecimalDa(weekLoggedMin)} / ${formatHoursDecimalDa(weekGoalMin)}`}
-        tone={weekTone}
-      />
+      <PulseKpiCard label={periodLabel} value={`${formatHoursDecimalDa(weekLoggedMin)} / ${formatHoursDecimalDa(weekGoalMin)}`} tone={weekTone} />
     </section>
   );
 }
