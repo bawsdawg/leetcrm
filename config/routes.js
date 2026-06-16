@@ -21,6 +21,7 @@ export const routes = {
   team: "/team",
   users: "/users",
   reports: "/reports",
+  chat: "/chat",
   privacy: "/privacy",
   terms: "/terms",
   api: {
