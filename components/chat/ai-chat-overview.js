@@ -173,6 +173,15 @@ function PlayIcon({ size = 13 }) {
   );
 }
 
+// Corner-bracket glyphs for the fullscreen toggle (outward = enter, inward = exit).
+function ExpandIcon({ size = 15 }) {
+  return <Icon size={size}><path d="M6 2H2v4M14 6V2h-4M10 14h4v-4M2 10v4h4" /></Icon>;
+}
+
+function CompressIcon({ size = 15 }) {
+  return <Icon size={size}><path d="M2 6h4V2M10 2v4h4M14 10h-4v4M6 14v-4H2" /></Icon>;
+}
+
 const SOURCES = [
   { label: "Kunder", sub: "Client · Contact", icon: "Users", hue: 272 },
   { label: "Kontrakter & salg", sub: "Contract · OneOffSale", icon: "Briefcase", hue: 205 },
@@ -188,6 +197,27 @@ const SLACK_BLUE = "#36C5F0";
 const CLAUDE_CLAY = "#D97757";
 const APEX_C = "oklch(62% 0.16 200)";
 const WRITE_C = "oklch(60% 0.15 150)"; // green "write-back" channel
+
+// Platforms Apex pulls performance data from — rendered as small icon-only marks
+// inside the Apex MCP node. Logos served from the Searchmind asset library.
+const APEX_ASSETS = "https://assets.searchmind.tech";
+const PLATFORMS = [
+  { name: "Meta", file: "tools/Facebook Ads.png" },
+  { name: "Google Ads", file: "tools/Google Ads.png" },
+  { name: "Shopify", file: "tools/Shopify.png" },
+  { name: "Klaviyo", file: "tools/Klaviyo.png" },
+  { name: "GA4", file: "tools/Google Analytics 4.png" },
+  { name: "Pinterest", file: "tools/Pinterest Ads.png" },
+  { name: "Snapchat", file: "tools/Snapchat Ads.png" },
+  { name: "Reddit", file: "tools/Reddit Ads.png" },
+  { name: "Microsoft Ads", file: "tools/Microsoft Advertising (Bing).png" },
+  { name: "TikTok", file: "tools/TikTok Ads.png" },
+  { name: "Magento 2", file: "tools/Adobe Commerce (Magento 2).png" },
+  { name: "Ahrefs", file: "tools/Ahrefs.png" },
+  { name: "Instagram", file: "tools/Instagram Ads.png" },
+  { name: "WooCommerce", file: "tools/WooCommerce.png" },
+  { name: "YouTube", file: "tools/YouTube.png" },
+];
 
 const W = 1240;
 const H = 880;
@@ -208,8 +238,8 @@ const FLOWS = [
     d: `M284 ${srcCY(i)} C 400 ${srcCY(i)}, 440 ${entryY(i)}, 515 ${entryY(i)}`,
     color: `oklch(62% 0.18 ${s.hue})`,
   })),
-  // Apex MCP → Searchmind MCP (top, feeding down)
-  { d: "M640 196 C 640 240, 640 262, 640 300", color: APEX_C },
+  // Apex MCP → Searchmind MCP (top, feeding down) — starts at the taller node's base
+  { d: "M640 262 C 640 278, 640 290, 640 300", color: APEX_C },
   // Searchmind MCP → Slack / Claude
   { d: "M765 415 C 845 415, 855 348, 915 348", color: SLACK_BLUE },
   { d: "M765 415 C 845 415, 855 503, 915 503", color: CLAUDE_CLAY },
@@ -278,6 +308,7 @@ export function AiChatOverview() {
   const wrapRef = useRef(null);
   const dotsRef = useRef(null);
   const [scale, setScale] = useState(1);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // ── Fit the fixed 1240×880 canvas into the available viewport (width AND height) ──
   useEffect(() => {
@@ -343,6 +374,45 @@ export function AiChatOverview() {
     };
   }, []);
 
+  // ── Fullscreen: native Fullscreen API to present the diagram chrome-free, with a
+  // fixed-overlay fallback (state alone) when the API is unavailable/blocked. The fit
+  // ResizeObserver above recomputes `scale` automatically on the resulting resize. ──
+  const toggleFullscreen = () => {
+    const el = wrapRef.current;
+    if (!isFullscreen) {
+      setIsFullscreen(true);
+      try {
+        el?.requestFullscreen?.()?.catch?.(() => {});
+      } catch {
+        /* keep the fixed-overlay fallback */
+      }
+    } else {
+      setIsFullscreen(false);
+      try {
+        if (document.fullscreenElement) document.exitFullscreen?.()?.catch?.(() => {});
+      } catch {
+        /* no-op */
+      }
+    }
+  };
+
+  // Sync state when the user leaves native fullscreen (Esc / browser UI), and let
+  // Esc close the fixed-overlay fallback even when the native API isn't in use.
+  useEffect(() => {
+    const onFsChange = () => {
+      if (!document.fullscreenElement) setIsFullscreen(false);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") setIsFullscreen(false);
+    };
+    document.addEventListener("fullscreenchange", onFsChange);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFsChange);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
   const colLabel = {
     position: "absolute",
     fontSize: 10.5,
@@ -391,11 +461,30 @@ export function AiChatOverview() {
         </Link>
       </div>
 
-      {/* ── Stage: fixed 1240×880 canvas, scaled to fill the available viewport ── */}
+      {/* ── Stage: fixed 1240×880 canvas, scaled to fill the available viewport.
+          The Fuldskærm button promotes the stage to a viewport overlay (and native
+          fullscreen) so the flow can be read / presented at a much larger scale. ── */}
       <div
         ref={wrapRef}
         className="relative mt-3 flex min-h-[280px] min-w-0 flex-1 items-center justify-center overflow-hidden"
+        style={
+          isFullscreen
+            ? { position: "fixed", inset: 0, zIndex: 9999, marginTop: 0, background: "var(--ds-canvas)" }
+            : undefined
+        }
       >
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          aria-label={isFullscreen ? "Luk fuldskærm" : "Vis i fuldskærm"}
+          aria-pressed={isFullscreen}
+          title={isFullscreen ? "Luk fuldskærm (Esc)" : "Vis grafikken i fuldskærm"}
+          className="absolute right-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-card px-3 py-2 font-sans text-[12px] font-semibold text-fg-muted shadow-agency-raised transition-colors hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
+          {isFullscreen ? <CompressIcon size={15} /> : <ExpandIcon size={15} />}
+          <span>{isFullscreen ? "Luk" : "Fuldskærm"}</span>
+        </button>
+
         <div
           style={{
             width: W,
@@ -559,47 +648,92 @@ export function AiChatOverview() {
             );
           })}
 
-          {/* Apex MCP (performance-data feed) */}
-          <NodeShell x={525} y={104} w={230} h={92} style={{ borderColor: `color-mix(in oklch, ${APEX_C} 40%, var(--ds-border))` }}>
+          {/* Apex MCP (performance-data feed) — header + the platforms it pulls data from */}
+          <div
+            style={{
+              position: "absolute",
+              left: 525,
+              top: 104,
+              width: 230,
+              height: 158,
+              background: "var(--ds-surface-card)",
+              border: `1px solid color-mix(in oklch, ${APEX_C} 40%, var(--ds-border))`,
+              borderRadius: 12,
+              boxShadow: "var(--agency-shadow-raised)",
+              display: "flex",
+              flexDirection: "column",
+              padding: "12px 14px",
+              gap: 10,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 11,
+                  flexShrink: 0,
+                  background: `linear-gradient(135deg, ${APEX_C}, oklch(66% 0.15 172))`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: `0 5px 14px color-mix(in oklch, ${APEX_C} 38%, transparent)`,
+                }}
+              >
+                <ApexLogo size={26} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 15, fontWeight: 600 }} className="text-fg">Apex MCP</div>
+                <div style={{ fontSize: 11.5 }} className="text-fg-muted">Al performance-data</div>
+              </div>
+              <span
+                style={{
+                  marginLeft: "auto",
+                  flexShrink: 0,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "3px 9px",
+                  borderRadius: 999,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  background: `color-mix(in oklch, ${APEX_C} 12%, var(--ds-surface-card))`,
+                  border: `1px solid color-mix(in oklch, ${APEX_C} 30%, var(--ds-border))`,
+                  color: APEX_C,
+                }}
+              >
+                <span className="gk-pulse-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: APEX_C }} />
+                Live
+              </span>
+            </div>
+
+            {/* Data-points: the platforms Apex pulls performance data from — icons only */}
             <div
               style={{
-                width: 44,
-                height: 44,
-                borderRadius: 11,
-                flexShrink: 0,
-                background: `linear-gradient(135deg, ${APEX_C}, oklch(66% 0.15 172))`,
                 display: "flex",
+                flexWrap: "wrap",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: `0 5px 14px color-mix(in oklch, ${APEX_C} 38%, transparent)`,
+                gap: 7,
+                paddingTop: 9,
+                borderTop: "1px solid var(--ds-border)",
               }}
             >
-              <ApexLogo size={26} />
+              {PLATFORMS.map((p) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={p.name}
+                  src={`${APEX_ASSETS}/${encodeURI(p.file)}`}
+                  alt={p.name}
+                  title={p.name}
+                  width={16}
+                  height={16}
+                  loading="lazy"
+                  style={{ width: 16, height: 16, objectFit: "contain", display: "block" }}
+                />
+              ))}
             </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 600 }} className="text-fg">Apex MCP</div>
-              <div style={{ fontSize: 11.5 }} className="text-fg-muted">Al performance-data</div>
-            </div>
-            <span
-              style={{
-                marginLeft: "auto",
-                flexShrink: 0,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "3px 9px",
-                borderRadius: 999,
-                fontSize: 11,
-                fontWeight: 600,
-                background: `color-mix(in oklch, ${APEX_C} 12%, var(--ds-surface-card))`,
-                border: `1px solid color-mix(in oklch, ${APEX_C} 30%, var(--ds-border))`,
-                color: APEX_C,
-              }}
-            >
-              <span className="gk-pulse-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: APEX_C }} />
-              Live
-            </span>
-          </NodeShell>
+          </div>
 
           {/* Searchmind MCP (hero) */}
           <div style={{ position: "absolute", left: 515, top: 300, width: 250, height: 230 }}>
